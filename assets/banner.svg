@@ -2,86 +2,99 @@
   <defs>
     <style>
       .mono { font-family: 'SF Mono', 'Geist Mono', 'JetBrains Mono', Menlo, Consolas, monospace; }
-      .sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif; }
+      .sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif; }
     </style>
   </defs>
 
-  <!-- Background Canvas -->
-  <rect width="1280" height="640" fill="#0b0f17" />
+  <!-- Canvas Background -->
+  <rect width="1280" height="640" fill="#08090d" />
 
-  <!-- Outer hairline container -->
-  <rect x="24" y="24" width="1232" height="592" rx="12" fill="none" stroke="#1e293b" stroke-width="1" />
+  <!-- Outer Architectural Shell -->
+  <rect x="20" y="20" width="1240" height="600" rx="14" fill="#0d1117" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+  <line x1="34" y1="21" x2="1246" y2="21" stroke="rgba(255, 255, 255, 0.16)" stroke-width="1" />
 
-  <!-- LEFT COLUMN: Value Proposition & Engineering Metrics -->
-  <!-- Tag / Badges -->
-  <rect x="72" y="80" width="170" height="28" rx="4" fill="#161e2e" stroke="#334155" stroke-width="1" />
-  <text class="mono" x="157" y="98" fill="#38bdf8" font-size="11" font-weight="600" letter-spacing="1.2" text-anchor="middle">RUST ABI3 · PYO3</text>
+  <!-- LEFT COLUMN: Identity, Typography & Metrics -->
+  <g transform="translate(68, 76)">
+    <!-- Metadata Tags -->
+    <rect x="0" y="0" width="168" height="26" rx="4" fill="#161b24" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+    <text class="mono" x="84" y="17" fill="#38bdf8" font-size="11" font-weight="600" letter-spacing="1.4" text-anchor="middle">RUST ABI3 · PYO3</text>
 
-  <rect x="254" y="80" width="140" height="28" rx="4" fill="#161e2e" stroke="#334155" stroke-width="1" />
-  <text class="mono" x="324" y="98" fill="#34d399" font-size="11" font-weight="600" letter-spacing="1.2" text-anchor="middle">PYTHON 3.8 – 3.13</text>
+    <rect x="180" y="0" width="148" height="26" rx="4" fill="#161b24" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+    <text class="mono" x="254" y="17" fill="#34d399" font-size="11" font-weight="600" letter-spacing="1.4" text-anchor="middle">PYTHON 3.8 – 3.13</text>
 
-  <!-- Title -->
-  <text class="sans" x="72" y="172" fill="#f8fafc" font-size="58" font-weight="800" letter-spacing="-1.5">fast-croniter</text>
+    <!-- Main Title with Apple Pro Display Tracking -->
+    <text class="sans" x="0" y="98" fill="#f0f6fc" font-size="62" font-weight="700" letter-spacing="-2.2">fast-croniter</text>
 
-  <!-- Subtitle -->
-  <text class="sans" x="72" y="214" fill="#94a3b8" font-size="19" font-weight="400">Drop-in Rust replacement for Python's croniter engine.</text>
-  <text class="sans" x="72" y="240" fill="#64748b" font-size="15" font-weight="400">Zero Python dependencies · Exact ABI &amp; upstream bug-for-bug compatibility.</text>
+    <!-- Subtitles -->
+    <text class="sans" x="0" y="140" fill="#8b949e" font-size="19.5" font-weight="400" letter-spacing="-0.2">Drop-in Rust replacement for Python's croniter engine.</text>
+    <text class="sans" x="0" y="168" fill="#6e7681" font-size="14.5" font-weight="400">100% upstream parity (267/267 tests) · Up to 41x faster recurrence throughput.</text>
 
-  <!-- Metrics Grid -->
-  <g transform="translate(72, 280)">
-    <!-- Metric 1 -->
-    <rect x="0" y="0" width="180" height="116" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
-    <text class="sans" x="20" y="44" fill="#38bdf8" font-size="34" font-weight="800" letter-spacing="-0.5">38.0x</text>
-    <text class="sans" x="20" y="74" fill="#f8fafc" font-size="13" font-weight="600">Peak Speedup</text>
-    <text class="sans" x="20" y="94" fill="#64748b" font-size="11" font-weight="400">vs CPython croniter</text>
+    <!-- Bento Metric Cards -->
+    <g transform="translate(0, 206)">
+      <!-- Metric 1: Speedup -->
+      <g transform="translate(0, 0)">
+        <rect width="176" height="114" rx="8" fill="#131720" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+        <line x1="8" y1="1" x2="168" y2="1" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
+        <text class="sans" x="18" y="44" fill="#38bdf8" font-size="36" font-weight="700" letter-spacing="-0.8">38.0x</text>
+        <text class="mono" x="18" y="74" fill="#8b949e" font-size="10.5" font-weight="600" letter-spacing="1.2">PEAK SPEEDUP</text>
+        <text class="sans" x="18" y="95" fill="#6e7681" font-size="12" font-weight="400">vs CPython croniter</text>
+      </g>
 
-    <!-- Metric 2 -->
-    <rect x="196" y="0" width="180" height="116" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
-    <text class="sans" x="216" y="44" fill="#34d399" font-size="34" font-weight="800" letter-spacing="-0.5">267/267</text>
-    <text class="sans" x="216" y="74" fill="#f8fafc" font-size="13" font-weight="600">Upstream Tests</text>
-    <text class="sans" x="216" y="94" fill="#64748b" font-size="11" font-weight="400">100% pass rate</text>
+      <!-- Metric 2: Test Parity -->
+      <g transform="translate(192, 0)">
+        <rect width="176" height="114" rx="8" fill="#131720" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+        <line x1="8" y1="1" x2="168" y2="1" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
+        <text class="sans" x="18" y="44" fill="#34d399" font-size="34" font-weight="700" letter-spacing="-0.8">267/267</text>
+        <text class="mono" x="18" y="74" fill="#8b949e" font-size="10.5" font-weight="600" letter-spacing="1.2">UPSTREAM TESTS</text>
+        <text class="sans" x="18" y="95" fill="#6e7681" font-size="12" font-weight="400">100% reference pass</text>
+      </g>
 
-    <!-- Metric 3 -->
-    <rect x="392" y="0" width="180" height="116" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
-    <text class="sans" x="412" y="44" fill="#f59e0b" font-size="34" font-weight="800" letter-spacing="-0.5">916k</text>
-    <text class="sans" x="412" y="74" fill="#f8fafc" font-size="13" font-weight="600">Ops / Second</text>
-    <text class="sans" x="412" y="94" fill="#64748b" font-size="11" font-weight="400">sustained throughput</text>
+      <!-- Metric 3: Throughput -->
+      <g transform="translate(384, 0)">
+        <rect width="176" height="114" rx="8" fill="#131720" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+        <line x1="8" y1="1" x2="168" y2="1" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
+        <text class="sans" x="18" y="44" fill="#fbbf24" font-size="36" font-weight="700" letter-spacing="-0.8">916k</text>
+        <text class="mono" x="18" y="74" fill="#8b949e" font-size="10.5" font-weight="600" letter-spacing="1.2">THROUGHPUT</text>
+        <text class="sans" x="18" y="95" fill="#6e7681" font-size="12" font-weight="400">iterations / second</text>
+      </g>
+    </g>
+
+    <!-- Bottom Attribution & Metadata -->
+    <g transform="translate(0, 362)">
+      <line x1="0" y1="0" x2="560" y2="0" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+      <text class="mono" x="0" y="30" fill="#6e7681" font-size="11" letter-spacing="1">AUTHOR</text>
+      <text class="sans" x="0" y="52" fill="#c9d1d9" font-size="14.5" font-weight="600">Akash Priyadarshi</text>
+      <text class="mono" x="0" y="72" fill="#6e7681" font-size="12">akashpriyadarshi.is-a.dev</text>
+
+      <text class="mono" x="310" y="30" fill="#6e7681" font-size="11" letter-spacing="1">REPOSITORY</text>
+      <text class="mono" x="310" y="52" fill="#38bdf8" font-size="13.5" font-weight="600">AkashPriyadarshii/fast-croniter</text>
+      <text class="mono" x="310" y="72" fill="#6e7681" font-size="12">MIT / Apache-2.0 Dual License</text>
+    </g>
   </g>
 
-  <!-- Author & Repo Signature -->
-  <g transform="translate(72, 440)">
-    <line x1="0" y1="0" x2="572" y2="0" stroke="#1e293b" stroke-width="1" />
-    <text class="mono" x="0" y="36" fill="#64748b" font-size="12">ENGINEER</text>
-    <text class="sans" x="0" y="58" fill="#cbd5e1" font-size="14" font-weight="600">Akash Priyadarshi</text>
-    <text class="mono" x="0" y="76" fill="#64748b" font-size="12">akashpriyadarshi.is-a.dev</text>
-
-    <text class="mono" x="320" y="36" fill="#64748b" font-size="12">REPOSITORY</text>
-    <text class="mono" x="320" y="58" fill="#38bdf8" font-size="13" font-weight="600">AkashPriyadarshii/fast-croniter</text>
-    <text class="mono" x="320" y="76" fill="#64748b" font-size="12">MIT / Apache-2.0 Dual License</text>
-  </g>
-
-  <!-- RIGHT COLUMN: Code Card Preview -->
-  <g transform="translate(684, 80)">
+  <!-- RIGHT COLUMN: Code Window Frame -->
+  <g transform="translate(688, 76)">
     <!-- Card Frame -->
-    <rect x="0" y="0" width="524" height="472" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <rect width="524" height="488" rx="10" fill="#131720" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
 
-    <!-- Card Header / Title bar -->
-    <path d="M 0 10 C 0 4.477 4.477 0 10 0 L 514 0 C 519.523 0 524 4.477 524 10 L 524 40 L 0 40 Z" fill="#161e2e" />
-    <line x1="0" y1="40" x2="524" y2="40" stroke="#1e293b" stroke-width="1" />
+    <!-- Window Topbar with Specular Highlight -->
+    <path d="M 0 10 C 0 4.477 4.477 0 10 0 L 514 0 C 519.523 0 524 4.477 524 10 L 524 40 L 0 40 Z" fill="#181d28" />
+    <line x1="0" y1="40" x2="524" y2="40" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+    <line x1="10" y1="1" x2="514" y2="1" stroke="rgba(255, 255, 255, 0.14)" stroke-width="1" />
 
-    <!-- Window Controls -->
-    <circle cx="20" cy="20" r="5.5" fill="#ef4444" opacity="0.8" />
-    <circle cx="38" cy="20" r="5.5" fill="#f59e0b" opacity="0.8" />
-    <circle cx="56" cy="20" r="5.5" fill="#10b981" opacity="0.8" />
+    <!-- macOS Traffic Controls -->
+    <circle cx="22" cy="20" r="5.5" fill="#ff5f56" />
+    <circle cx="40" cy="20" r="5.5" fill="#ffbd2e" />
+    <circle cx="58" cy="20" r="5.5" fill="#27c93f" />
 
-    <text class="mono" x="262" y="24" fill="#94a3b8" font-size="12" text-anchor="middle">example.py</text>
+    <text class="mono" x="262" y="25" fill="#8b949e" font-size="12" font-weight="500" text-anchor="middle">example.py</text>
 
-    <!-- Code Content -->
+    <!-- Code Body -->
     <g transform="translate(24, 68)" class="mono" font-size="13.5">
       <!-- Line 1 -->
       <text y="0">
         <tspan fill="#f43f5e">from</tspan>
-        <tspan fill="#f8fafc"> fast_croniter </tspan>
+        <tspan fill="#f0f6fc"> fast_croniter </tspan>
         <tspan fill="#f43f5e">import</tspan>
         <tspan fill="#38bdf8"> croniter</tspan>
       </text>
@@ -89,48 +102,51 @@
       <!-- Line 2 -->
       <text y="26">
         <tspan fill="#f43f5e">import</tspan>
-        <tspan fill="#f8fafc"> datetime</tspan>
+        <tspan fill="#f0f6fc"> datetime</tspan>
       </text>
 
-      <!-- Line 3 (comment) -->
-      <text y="62" fill="#64748b"># Exact drop-in replacement: zero code changes</text>
+      <!-- Line 3 (Comment) -->
+      <text y="62" fill="#6e7681"># Drop-in replacement: zero code changes required</text>
 
       <!-- Line 4 -->
       <text y="88">
-        <tspan fill="#f8fafc">base = datetime.datetime(</tspan><tspan fill="#f59e0b">2024</tspan><tspan fill="#f8fafc">, </tspan><tspan fill="#f59e0b">1</tspan><tspan fill="#f8fafc">, </tspan><tspan fill="#f59e0b">1</tspan><tspan fill="#f8fafc">, </tspan><tspan fill="#f59e0b">0</tspan><tspan fill="#f8fafc">, </tspan><tspan fill="#f59e0b">0</tspan><tspan fill="#f8fafc">)</tspan>
+        <tspan fill="#f0f6fc">base = datetime.datetime(</tspan><tspan fill="#fbbf24">2024</tspan><tspan fill="#f0f6fc">, </tspan><tspan fill="#fbbf24">1</tspan><tspan fill="#f0f6fc">, </tspan><tspan fill="#fbbf24">1</tspan><tspan fill="#f0f6fc">, </tspan><tspan fill="#fbbf24">0</tspan><tspan fill="#f0f6fc">, </tspan><tspan fill="#fbbf24">0</tspan><tspan fill="#f0f6fc">)</tspan>
       </text>
 
       <!-- Line 5 -->
       <text y="114">
-        <tspan fill="#f8fafc">iter = </tspan><tspan fill="#38bdf8">croniter</tspan><tspan fill="#f8fafc">(</tspan><tspan fill="#34d399">"*/5 * * * *"</tspan><tspan fill="#f8fafc">, base)</tspan>
+        <tspan fill="#f0f6fc">iter = </tspan><tspan fill="#38bdf8">croniter</tspan><tspan fill="#f0f6fc">(</tspan><tspan fill="#34d399">"*/5 * * * *"</tspan><tspan fill="#f0f6fc">, base)</tspan>
       </text>
 
       <!-- Line 6 -->
       <text y="140">
-        <tspan fill="#f8fafc">next_dt = iter.</tspan><tspan fill="#60a5fa">get_next</tspan><tspan fill="#f8fafc">(datetime.datetime)</tspan>
+        <tspan fill="#f0f6fc">next_dt = iter.</tspan><tspan fill="#60a5fa">get_next</tspan><tspan fill="#f0f6fc">(datetime.datetime)</tspan>
       </text>
 
-      <!-- Divider inside card -->
-      <line x1="0" y1="172" x2="476" y2="172" stroke="#1e293b" stroke-width="1" />
+      <!-- Embedded Measured Benchmark Panel -->
+      <g transform="translate(0, 182)">
+        <rect width="476" height="172" rx="6" fill="#090c10" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+        <line x1="6" y1="1" x2="470" y2="1" stroke="rgba(255, 255, 255, 0.10)" stroke-width="1" />
 
-      <!-- Benchmark result block -->
-      <rect x="0" y="192" width="476" height="152" rx="6" fill="#0b0f17" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="32" fill="#6e7681" font-size="11" letter-spacing="1.2">MEASURED BENCHMARK (10,000 ITERATIONS)</text>
 
-      <text x="16" y="222" fill="#64748b" font-size="11.5" letter-spacing="1">BENCHMARK (10,000 ITERATIONS)</text>
+        <text x="18" y="66" fill="#8b949e" font-size="13">
+          <tspan fill="#f87171">croniter (Python):</tspan>
+          <tspan fill="#8b949e">   24,950 ops/sec</tspan>
+        </text>
 
-      <text x="16" y="254" fill="#94a3b8" font-size="12.5">
-        <tspan fill="#ef4444">croniter (Python):</tspan>
-        <tspan fill="#94a3b8">  24,950 ops/sec</tspan>
-      </text>
+        <text x="18" y="96" fill="#8b949e" font-size="13">
+          <tspan fill="#34d399">fast-croniter (Rust):</tspan>
+          <tspan fill="#f0f6fc" font-weight="700">  916,271 ops/sec</tspan>
+        </text>
 
-      <text x="16" y="280" fill="#94a3b8" font-size="12.5">
-        <tspan fill="#34d399">fast-croniter (Rust):</tspan>
-        <tspan fill="#f8fafc" font-weight="700"> 916,271 ops/sec</tspan>
-      </text>
+        <!-- Result divider -->
+        <line x1="18" y1="120" x2="458" y2="120" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1" />
 
-      <text x="16" y="316" fill="#38bdf8" font-size="13" font-weight="700">
-        Result: 36.7x faster · 100% identical timestamps
-      </text>
+        <text x="18" y="146" fill="#38bdf8" font-size="13" font-weight="600">
+          Result: 36.7x speedup · 100% timestamp equality
+        </text>
+      </g>
     </g>
   </g>
 </svg>
