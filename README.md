@@ -59,6 +59,12 @@ for dt in croniter_range(datetime.datetime(2024, 1, 1), datetime.datetime(2024, 
     print(dt)
 ```
 
+## Author
+
+**Akash Priyadarshi** — [akashpriyadarshi.is-a.dev](https://akashpriyadarshi.is-a.dev) · [GitHub](https://github.com/AkashPriyadarshii) · [LinkedIn](https://linkedin.com/in/akashpriyadarshii) · [X](https://x.com/Akash__ydv001)
+
+*Akash Priyadarshi, self-taught developer & open-source builder from Patna, Bihar, India. Rust systems tooling, AI agents, Android internals.*
+
 ## License
 
 MIT / Apache-2.0
