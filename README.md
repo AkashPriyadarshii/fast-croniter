@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AkashPriyadarshii/fast-croniter/actions/workflows/CI.yml"><img src="https://img.shields.io/github/actions/workflow/status/AkashPriyadarshii/fast-croniter/CI.yml?branch=master&style=flat-square&label=CI" alt="CI Status"></a>
+  <a href="https://github.com/AkashPriyadarshii/fast-croniter/actions"><img src="https://img.shields.io/github/actions/workflow/status/AkashPriyadarshii/fast-croniter/CI.yml?branch=master&style=flat-square&label=CI" alt="CI Status"></a>
   <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/pypi/v/fast-croniter?style=flat-square&color=blue" alt="PyPI Version"></a>
   <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/pypi/pyversions/fast-croniter?style=flat-square" alt="Python Versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-green?style=flat-square" alt="License"></a>
@@ -120,7 +120,7 @@ for dt in croniter_range(datetime.datetime(2024, 1, 1), datetime.datetime(2024, 
 # 1. Setup virtual environment
 uv venv
 .venv\Scripts\activate  # Unix: source .venv/bin/activate
-uv pip install maturin pytest dateutil
+uv pip install maturin pytest python-dateutil pytz
 
 # 2. Build Rust extension in release mode
 maturin develop --release

@@ -9,7 +9,7 @@ Thank you for your interest in improving `fast-croniter`! We welcome bug fixes, 
    ```bash
    uv venv
    .venv\Scripts\activate  # Windows, or source .venv/bin/activate on Unix
-   uv pip install maturin pytest dateutil
+   uv pip install maturin pytest python-dateutil pytz
    ```
 3. Build the native extension in release mode:
    ```bash
