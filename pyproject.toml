@@ -4,19 +4,49 @@ build-backend = "maturin"
 
 [project]
 name = "fast-croniter"
+version = "0.1.0"
+description = "Fast, memory-safe, drop-in Rust replacement for Python croniter with PyO3 bindings"
+readme = "README.md"
 requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Rust",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
+license = { text = "MIT OR Apache-2.0" }
+authors = [
+    { name = "Akash Priyadarshi", email = "272530059+AkashPriyadarshii@users.noreply.github.com" }
 ]
-dynamic = ["version"]
+keywords = ["cron", "croniter", "rust", "pyo3", "scheduler", "airflow", "datetime"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/AkashPriyadarshii/fast-croniter"
+Repository = "https://github.com/AkashPriyadarshii/fast-croniter"
+Issues = "https://github.com/AkashPriyadarshii/fast-croniter/issues"
+Changelog = "https://github.com/AkashPriyadarshii/fast-croniter/blob/master/CHANGELOG.md"
+
 [project.optional-dependencies]
 tests = [
     "pytest",
+    "dateutil",
 ]
+
 [tool.maturin]
 python-source = "python"
+features = ["pyo3/extension-module"]
+include = ["python/fast_croniter/py.typed", "python/fast_croniter/__init__.pyi"]
 exclude = [
     "**/__pycache__",
     "**/*.pyc",
@@ -25,4 +55,3 @@ exclude = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
