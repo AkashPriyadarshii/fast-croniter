@@ -930,14 +930,12 @@ fn advance_month(dt: NaiveDateTime, diff: i32, is_prev: bool) -> NaiveDateTime {
     if is_prev {
         let new_day = last_day_of_month(new_year, new_month);
         NaiveDate::from_ymd_opt(new_year, new_month, new_day)
-            .unwrap()
-            .and_hms_opt(23, 59, 59)
-            .unwrap()
+            .and_then(|d| d.and_hms_opt(23, 59, 59))
+            .unwrap_or(dt)
     } else {
         NaiveDate::from_ymd_opt(new_year, new_month, 1)
-            .unwrap()
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
+            .and_then(|d| d.and_hms_opt(0, 0, 0))
+            .unwrap_or(dt)
     }
 }
 
@@ -1009,14 +1007,12 @@ pub fn calc_candidate(
                     let new_year = dt.year() + diff_y;
                     dt = if is_prev {
                         NaiveDate::from_ymd_opt(new_year, 12, 31)
-                            .unwrap()
-                            .and_hms_opt(23, 59, 59)
-                            .unwrap()
+                            .and_then(|d| d.and_hms_opt(23, 59, 59))
+                            .unwrap_or(dt)
                     } else {
                         NaiveDate::from_ymd_opt(new_year, 1, 1)
-                            .unwrap()
-                            .and_hms_opt(0, 0, 0)
-                            .unwrap()
+                            .and_then(|d| d.and_hms_opt(0, 0, 0))
+                            .unwrap_or(dt)
                     };
                     continue;
                 }
@@ -1358,12 +1354,10 @@ impl Croniter {
     #[classattr]
     #[pyo3(name = "RANGES")]
     fn class_ranges(py: Python<'_>) -> PyResult<PyObject> {
-        let items: Vec<PyObject> = RANGES
-            .iter()
-            .map(|&(a, b)| {
-                PyTuple::new(py, [a, b]).unwrap().into_any().unbind()
-            })
-            .collect();
+        let mut items = Vec::with_capacity(RANGES.len());
+        for &(a, b) in &RANGES {
+            items.push(PyTuple::new(py, [a, b])?.into_any().unbind());
+        }
         let t = PyTuple::new(py, items)?;
         Ok(t.into())
     }

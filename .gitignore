@@ -11,3 +11,4 @@ __pycache__/
 upstream-croniter/
 *.log
 *.db
+.pytest_cache/

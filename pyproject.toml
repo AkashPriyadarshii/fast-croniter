@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Fast, memory-safe, drop-in Rust replacement for Python croniter with PyO3 bindings"
 readme = "README.md"
 requires-python = ">=3.8"
+dependencies = [
+    "python-dateutil>=2.8.2",
+]
 license = { text = "MIT OR Apache-2.0" }
 authors = [
     { name = "Akash Priyadarshi", email = "272530059+AkashPriyadarshii@users.noreply.github.com" }
@@ -40,7 +43,8 @@ Changelog = "https://github.com/AkashPriyadarshii/fast-croniter/blob/master/CHAN
 [project.optional-dependencies]
 tests = [
     "pytest",
-    "dateutil",
+    "python-dateutil",
+    "pytz",
 ]
 
 [tool.maturin]
