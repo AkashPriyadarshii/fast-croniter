@@ -1,0 +1,65 @@
+# fast-croniter
+
+> A high-performance, drop-in Rust replacement for Python's `croniter` library, built with PyO3 and abi3 for Python 3.8 through 3.13.
+
+## Overview
+fast-croniter provides an identical API to `croniter` with up to 41x speedup in iteration, datetime calculation, and syntax validation. It compiles to native machine code with only `python-dateutil` as a runtime requirement.
+
+- Repository: https://github.com/AkashPriyadarshii/fast-croniter
+- License: MIT OR Apache-2.0
+- Python Support: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 (abi3 wheels)
+- Platforms: Linux (x86_64, aarch64), macOS (Apple Silicon, Intel), Windows (x86_64)
+
+## Core Capabilities
+- 100% Upstream Test Parity: Passes all 267 reference tests from `kiorky/croniter`.
+- Precision Timezone & DST: Correct handling of DST spring forward, fall back, and ambiguous transitions (Lord Howe, New York, UTC).
+- Extended Cron Syntax: Full support for second precision (6-field cron), `H`/`R` hashed jitter, step expressions, ranges, comma lists, and ISC/Vixie compatibility mode.
+- High Throughput: 780,000 to 960,000 iterations per second for high-frequency schedulers (Airflow, Celery, Prefect, Dagster).
+
+## Quickstart
+
+### Installation
+```bash
+pip install fast-croniter
+```
+
+### Drop-in Replacement Example
+```python
+from fast_croniter import croniter, croniter_range
+import datetime
+
+base = datetime.datetime(2024, 1, 1, 0, 0)
+iter = croniter("*/5 * * * *", base)
+
+# Get next recurrence as datetime
+next_dt = iter.get_next(datetime.datetime)
+
+# Get next recurrence as float timestamp
+next_ts = iter.get_next(float)
+
+# Test if datetime matches cron expression
+is_match = croniter.match("*/5 * * * *", next_dt)
+```
+
+## API Reference
+
+### Classes
+- `croniter(expr_format: str, start_time=None, ret_type=float, day_or=True, max_years_between_matches=None, is_prev=False, hash_id=None, implement_cron_bug=False)`: Core iterator.
+  - `get_next(ret_type=None)`: Returns the next timestamp (float or datetime).
+  - `get_prev(ret_type=None)`: Returns the previous timestamp.
+  - `get_current(ret_type=None)`: Returns the last computed timestamp.
+  - `set_current(start_time, force=True)`: Re-anchors the iterator base time.
+  - `all_next(ret_type=None)`: Infinite generator yielding subsequent occurrences.
+  - `all_prev(ret_type=None)`: Infinite generator yielding previous occurrences.
+  - `match(expr_format, dtime)`: Static method returning boolean match.
+  - `is_valid(expr_format, hash_id=None, encoding='UTF-8')`: Static method validating cron syntax.
+
+### Functions
+- `croniter_range(start, stop, expr_format, ret_type=datetime.datetime, day_or=True, exclude_ends=False)`: Generator yielding occurrences between start and stop bounds.
+
+### Exceptions
+- `CroniterError`: Base exception.
+- `CroniterBadCronError`: Raised for invalid syntax or out-of-range cron fields.
+- `CroniterBadDateError`: Raised for invalid or unparseable date inputs.
+- `CroniterNotAlphaError`: Raised when alpha month/day representation is invalid.
+- `CroniterUnsupportedSyntaxError`: Raised when unsupported syntax is supplied.

@@ -12,26 +12,37 @@
 
 ---
 
-A high-performance, drop-in Rust replacement for Python's `croniter` with PyO3 bindings and 100% test compatibility with upstream `kiorky/croniter`.
+# fast-croniter
+
+A high-performance, drop-in Rust replacement for Python's `croniter` library with PyO3 bindings and 100% upstream test compatibility.
+
+fast-croniter accelerates cron iteration, timestamp resolution, and expression validation by **17x to 41x** compared to pure-Python implementations. It requires zero code changes for existing applications using `croniter`.
 
 <p align="center">
-  <img src="assets/terminal-logo.svg" alt="fast-croniter Terminal Demo" width="100%">
+  <img src="assets/terminal-logo.svg" alt="fast-croniter Terminal Verification and Benchmark" width="100%">
 </p>
 
-## Highlights
+---
 
-- **100% Upstream Parity**: Verified against 267/267 reference tests from `kiorky/croniter` (DST gap shifts, Lord Howe transitions, `H` / `R` hashed jitter, Vixie/ISC `implement_cron_bug`, custom timezone handling).
-- **Blazing Fast**: **17x to 41x speedup** across recurrence iteration, datetime resolution, and expression validation.
-- **True Drop-In**: Identical classes, methods, exceptions, and constants (`croniter`, `croniter_range`, `CroniterBadCronError`, `SECOND_FIELD`, etc.).
-- **Zero Runtime Dependencies**: Precompiled native wheels for Linux, macOS, and Windows with abi3 (Python 3.8+).
+## Why fast-croniter?
+
+Modern workflow orchestration systems (Apache Airflow, Celery Beat, Prefect, Dagster, Temporal) frequently evaluate millions of cron recurrence rules across thousands of recurring tasks. In pure Python, `croniter` incurs substantial interpreter overhead on step iteration and timezone arithmetic.
+
+fast-croniter ports the complete recurrence engine to compiled Rust with native PyO3 abi3 wheels:
+
+- **Drop-in Migration**: Replace `import croniter` with `import fast_croniter as croniter`. All classes, method signatures, return types, constants, and exceptions are identical.
+- **100% Upstream Parity**: Validated against all 267 test cases in the `kiorky/croniter` test suite, including DST transitions, `H`/`R` hashed jitter, and ISC/Vixie compatibility mode.
+- **Throughput**: Computes over 916,000 recurrence iterations per second on a single thread.
+- **Minimal Runtime Dependencies**: Requires only `python-dateutil` for full timezone and DST parity with upstream `croniter`.
+- **AI Agent & LLM Ready**: Ships with [llms.txt](llms.txt) for context ingestion by AI coding assistants.
 
 ---
 
 ## Performance Benchmarks
 
-Measured over 10,000 iterations on Windows x86_64 comparing `croniter` (pure Python) vs `fast-croniter` (Rust / PyO3):
+Measured over 10,000 iterations per scenario comparing `croniter` (pure Python) against `fast-croniter` (Rust / PyO3):
 
-| Benchmark Scenario | Python `croniter` | Rust `fast-croniter` | Speedup |
+| Benchmark Scenario | Python `croniter` | Rust `fast-croniter` | Throughput Speedup |
 |:---|---:|---:|---:|
 | Simple Step (`*/5 * * * *`, float) | 38,748 ops/sec | **788,625 ops/sec** | **20.4x faster** |
 | Simple Step (`*/5 * * * *`, datetime) | 38,693 ops/sec | **807,683 ops/sec** | **20.9x faster** |
@@ -46,6 +57,8 @@ Measured over 10,000 iterations on Windows x86_64 comparing `croniter` (pure Pyt
 
 ### 1. Installation
 
+Install via pip:
+
 ```bash
 pip install fast-croniter
 ```
@@ -58,10 +71,9 @@ maturin develop --release
 
 ### 2. Usage
 
-Simply replace your `croniter` import:
+Replace the `croniter` import:
 
 ```python
-# Drop-in replacement:
 from fast_croniter import croniter, croniter_range
 import datetime
 
@@ -72,11 +84,11 @@ iter = croniter("*/5 * * * *", base)
 next_dt = iter.get_next(datetime.datetime)
 print(next_dt)  # 2024-01-01 00:05:00
 
-# Get next recurrence as Unix timestamp
+# Get next recurrence as Unix timestamp float
 next_ts = iter.get_next(float)
 print(next_ts)  # 1704067500.0
 
-# Expression match test
+# Match test
 is_match = croniter.match("*/5 * * * *", next_dt)
 print(is_match)  # True
 
@@ -87,15 +99,30 @@ for dt in croniter_range(datetime.datetime(2024, 1, 1), datetime.datetime(2024, 
 
 ---
 
+## Compatibility Matrix
+
+| Feature | `croniter` (Python) | `fast-croniter` (Rust) | Parity Status |
+|:---|:---:|:---:|:---:|
+| 5-Field Standard Cron | Yes | Yes | Identical |
+| 6-Field Second Precision | Yes | Yes | Identical |
+| Hashed Jitter (`H`, `R` syntax) | Yes | Yes | Identical |
+| Day-Or Logic (`day_or=True/False`) | Yes | Yes | Identical |
+| Vixie/ISC Bug Emulation (`implement_cron_bug`) | Yes | Yes | Identical |
+| DST Spring Forward / Fall Back | Yes | Yes | Identical |
+| Custom Timezone Objects | Yes | Yes | Identical |
+| PEP 561 Type Stubs (`py.typed`) | Partial | Yes (`__init__.pyi`) | Full coverage |
+
+---
+
 ## Local Development & Testing
 
 ```bash
-# 1. Setup virtualenv
+# 1. Setup virtual environment
 uv venv
-.venv\Scripts\activate  # or source .venv/bin/activate on Unix
+.venv\Scripts\activate  # Unix: source .venv/bin/activate
 uv pip install maturin pytest dateutil
 
-# 2. Build Rust extension
+# 2. Build Rust extension in release mode
 maturin develop --release
 
 # 3. Run test suites
@@ -110,9 +137,9 @@ python benchmark.py
 
 ## Author
 
-**Akash Priyadarshi** — [akashpriyadarshi.is-a.dev](https://akashpriyadarshi.is-a.dev) · [GitHub](https://github.com/AkashPriyadarshii) · [LinkedIn](https://linkedin.com/in/akashpriyadarshii) · [X](https://x.com/Akash__ydv001)
+**Akash Priyadarshi** · [akashpriyadarshi.is-a.dev](https://akashpriyadarshi.is-a.dev) · [GitHub](https://github.com/AkashPriyadarshii) · [LinkedIn](https://linkedin.com/in/akashpriyadarshii) · [X](https://x.com/Akash__ydv001)
 
-*Akash Priyadarshi, self-taught developer & open-source builder from Patna, Bihar, India. Rust systems tooling, AI agents, Android internals.*
+Akash Priyadarshi, self-taught developer & open-source builder from Patna, Bihar, India. Rust systems tooling, AI agents, Android internals.
 
 ## License
 
