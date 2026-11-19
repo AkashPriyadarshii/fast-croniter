@@ -5,7 +5,7 @@
 Closes #
 
 ## Changes Made
-- 
+- Summary of changes
 
 ## Verification Checklist
 - [ ] Code compiles cleanly with zero new warnings (`cargo clippy --all-targets -- -D warnings`)
