@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments, clippy::collapsible_if)]
+
 use std::collections::{HashMap, HashSet};
 use chrono::{Datelike, NaiveDate, NaiveDateTime, Timelike};
 use pyo3::prelude::*;
@@ -457,7 +459,7 @@ pub fn expand_expression(
                         let phase = get_low_from_current_date_number(field_index, step, dt_start);
                         let mut p = phase;
                         if p < final_low {
-                            p += ((final_low - p + step - 1) / step) * step;
+                            p += (final_low - p).div_ceil(step) * step;
                         }
                         if final_low <= p && p <= final_high {
                             final_low = p;
@@ -1167,7 +1169,7 @@ pub fn calc_candidate(
                 if let ExpandedField::Values(vals) = &expanded[SECOND_FIELD] {
                     let diff = nearest_diff_cyclic(dt.second() as i32, vals, 60, is_prev);
                     if diff != 0 {
-                        dt = dt + chrono::Duration::seconds(diff as i64);
+                        dt += chrono::Duration::seconds(diff as i64);
                         continue;
                     }
                 }
@@ -1723,8 +1725,8 @@ impl Croniter {
         force: Option<bool>,
     ) -> PyResult<f64> {
         let force = force.unwrap_or(true);
-        if force && start_time.is_some() {
-            let st = start_time.unwrap();
+        if force {
+            if let Some(st) = start_time {
             let datetime_cls = py.import("datetime")?.getattr("datetime")?;
 
             if st.is_instance(&datetime_cls)? {
@@ -1755,6 +1757,7 @@ impl Croniter {
                     "Invalid start_time type",
                 ));
             }
+        }
         }
         Ok(self.cur)
     }
@@ -1912,18 +1915,15 @@ impl Croniter {
             None
         };
 
-        let strict_years: Option<Vec<i32>> = if let Some(sy) = strict_year {
-            if sy.is_none() {
-                None
-            } else if let Ok(val) = sy.extract::<i32>() {
-                Some(vec![val])
-            } else if let Ok(list) = sy.extract::<Vec<i32>>() {
-                Some(list)
-            } else {
-                None
+        let strict_years: Option<Vec<i32>> = match strict_year {
+            Some(sy) if !sy.is_none() => {
+                if let Ok(val) = sy.extract::<i32>() {
+                    Some(vec![val])
+                } else {
+                    sy.extract::<Vec<i32>>().ok()
+                }
             }
-        } else {
-            None
+            _ => None,
         };
 
         match expand_expression(
@@ -2009,18 +2009,15 @@ impl Croniter {
             None
         };
 
-        let strict_years: Option<Vec<i32>> = if let Some(sy) = strict_year {
-            if sy.is_none() {
-                None
-            } else if let Ok(val) = sy.extract::<i32>() {
-                Some(vec![val])
-            } else if let Ok(list) = sy.extract::<Vec<i32>>() {
-                Some(list)
-            } else {
-                None
+        let strict_years: Option<Vec<i32>> = match strict_year {
+            Some(sy) if !sy.is_none() => {
+                if let Ok(val) = sy.extract::<i32>() {
+                    Some(vec![val])
+                } else {
+                    sy.extract::<Vec<i32>>().ok()
+                }
             }
-        } else {
-            None
+            _ => None,
         };
 
         let parsed = expand_expression(
@@ -2141,8 +2138,10 @@ impl Croniter {
         };
         let tdt = tdt_obj.bind(py);
 
-        let precision = precision_in_seconds.unwrap_or_else(|| {
-            if cron.parsed.expanded.len() > 5 { 1.0 } else { 60.0 }
+        let precision = precision_in_seconds.unwrap_or(if cron.parsed.expanded.len() > 5 {
+            1.0
+        } else {
+            60.0
         });
 
         let diff_span: f64 = to_datetime
