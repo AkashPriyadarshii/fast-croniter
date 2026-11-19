@@ -1,0 +1,38 @@
+name: Bug Report
+description: Report a bug or behavioral discrepancy against upstream croniter
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting an issue! Please ensure this is reproducible with `fast-croniter`.
+  - type: textarea
+    id: cron-expression
+    attributes:
+      label: Cron Expression & Input Datetime
+      description: The exact cron expression and start timestamp/datetime used.
+      placeholder: "e.g., croniter('*/5 * * * *', datetime(2024, 1, 1, 0, 0))"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior (Upstream croniter)
+      description: What pure-Python `croniter` returns.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior (fast-croniter)
+      description: What `fast-croniter` returns, or stack trace if it raised an exception.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS version, Python version, fast-croniter version.
+      placeholder: Windows 11, Python 3.13, fast-croniter 0.1.0
+    validations:
+      required: true
