@@ -5,7 +5,10 @@ import random
 import subprocess
 import sys
 import unittest
-import zoneinfo
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo  # type: ignore[no-redef]
 from datetime import datetime, timedelta
 from functools import partial
 from time import sleep
@@ -2246,7 +2249,10 @@ class CroniterTest(base.TestCase):
         # enforced by an ordinary check or 1#0 and 1#7 pass validation.
         code = (
             "import sys\n"
-            "from croniter import croniter\n"
+            "try:\n"
+            "    from croniter import croniter\n"
+            "except ImportError:\n"
+            "    from fast_croniter import croniter\n"
             "bad = [e for e in ('0 0 * * 1#0', '0 0 * * 1#7') if croniter.is_valid(e)]\n"
             "sys.exit(repr(bad) if bad else 0)\n"
         )

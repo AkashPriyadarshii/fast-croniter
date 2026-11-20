@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 import unittest
-import zoneinfo
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo  # type: ignore[no-redef]
 from datetime import datetime
 
 import pytz
