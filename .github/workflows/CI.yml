@@ -208,10 +208,15 @@ jobs:
           files: 'wheels-*/*'
           generate_release_notes: true
       - name: Install uv
-        if: ${{ startsWith(github.ref, 'refs/tags/') && secrets.PYPI_API_TOKEN != '' }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: astral-sh/setup-uv@v5
       - name: Publish to PyPI
-        if: ${{ startsWith(github.ref, 'refs/tags/') && secrets.PYPI_API_TOKEN != '' }}
-        run: uv publish 'wheels-*/*'
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          if [ -n "$UV_PUBLISH_TOKEN" ]; then
+            uv publish 'wheels-*/*'
+          else
+            echo "PYPI_API_TOKEN secret not configured, skipping PyPI publish"
+          fi
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
