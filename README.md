@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AkashPriyadarshii/fast-croniter/actions"><img src="https://img.shields.io/github/actions/workflow/status/AkashPriyadarshii/fast-croniter/CI.yml?branch=master&style=flat-square&label=CI" alt="CI Status"></a>
-  <a href="https://github.com/AkashPriyadarshii/fast-croniter/releases/tag/v0.1.0"><img src="https://img.shields.io/github/v/release/AkashPriyadarshii/fast-croniter?style=flat-square&color=blue" alt="GitHub Release"></a>
-  <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/pypi/v/fast-croniter?style=flat-square&color=blue" alt="PyPI Version"></a>
-  <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/pypi/pyversions/fast-croniter?style=flat-square" alt="Python Versions"></a>
+  <a href="https://github.com/AkashPriyadarshii/fast-croniter/actions/workflows/CI.yml"><img src="https://img.shields.io/github/actions/workflow/status/AkashPriyadarshii/fast-croniter/CI.yml?branch=master&style=flat-square&label=CI" alt="CI Status"></a>
+  <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/pypi/v/fast-croniter?style=flat-square&color=blue&logo=pypi&logoColor=white" alt="PyPI Version"></a>
+  <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/badge/python-3.8+-blue?style=flat-square&logo=python&logoColor=white" alt="Python Versions"></a>
+  <a href="https://github.com/AkashPriyadarshii/fast-croniter/releases/latest"><img src="https://img.shields.io/github/v/release/AkashPriyadarshii/fast-croniter?style=flat-square&color=blue" alt="GitHub Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-green?style=flat-square" alt="License"></a>
   <a href="https://akashpriyadarshi.is-a.dev"><img src="https://img.shields.io/badge/author-Akash%20Priyadarshi-orange?style=flat-square" alt="Author"></a>
 </p>
