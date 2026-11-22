@@ -38,8 +38,13 @@ YEAR_FIELDS = (
     YEAR_FIELD,
 )
 
-OVERFLOW32B_MODE = False
 UTC_DT = datetime.timezone.utc
+try:
+    datetime.datetime.fromtimestamp(3999999999, tz=tzutc())
+    OVERFLOW32B_MODE = False
+except OverflowError:
+    OVERFLOW32B_MODE = True
+
 EPOCH = datetime.datetime.fromtimestamp(0, UTC_DT)
 
 M_ALPHAS = {
@@ -270,9 +275,12 @@ def croniter_range(
 
 __all__ = [
     "DAY_FIELD",
+    "DOW_ALPHAS",
+    "EPOCH",
     "HOUR_FIELD",
     "MINUTE_FIELD",
     "MONTH_FIELD",
+    "M_ALPHAS",
     "OVERFLOW32B_MODE",
     "SECOND_FIELD",
     "SECOND_FIELDS",

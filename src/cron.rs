@@ -786,6 +786,7 @@ fn rand_u32() -> u32 {
     (s ^ (s >> 31)) as u32
 }
 
+#[inline]
 fn nearest_diff_cyclic(x: i32, vals: &[ExpandedVal], range_val: i32, is_prev: bool) -> i32 {
     if vals.iter().any(|v| matches!(v, ExpandedVal::All)) {
         return 0;
@@ -835,6 +836,7 @@ fn nearest_diff_cyclic(x: i32, vals: &[ExpandedVal], range_val: i32, is_prev: bo
     }
 }
 
+#[inline]
 fn nearest_diff_year(x: i32, vals: &[ExpandedVal], is_prev: bool) -> Option<i32> {
     if vals.iter().any(|v| matches!(v, ExpandedVal::All)) {
         return Some(0);
@@ -862,6 +864,7 @@ fn nearest_diff_year(x: i32, vals: &[ExpandedVal], is_prev: bool) -> Option<i32>
     }
 }
 
+#[inline]
 fn nearest_diff_day(x: i32, vals: &[ExpandedVal], range_val: i32, is_prev: bool) -> i32 {
     if vals.iter().any(|v| matches!(v, ExpandedVal::All)) {
         return 0;
@@ -924,10 +927,11 @@ fn nearest_diff_day(x: i32, vals: &[ExpandedVal], range_val: i32, is_prev: bool)
     }
 }
 
+#[inline]
 fn advance_month(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
     let total_months = (dt.year() as i64) * 12 + (dt.month() as i64 - 1) + (diff as i64);
     let new_year_i64 = total_months.div_euclid(12);
-    if new_year_i64 < -262143 || new_year_i64 > 262142 {
+    if !(-262143..=262142).contains(&new_year_i64) {
         return None;
     }
     let new_year = new_year_i64 as i32;
@@ -942,6 +946,7 @@ fn advance_month(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDat
     }
 }
 
+#[inline]
 fn advance_day(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
     let new_date = dt.date().checked_add_signed(chrono::Duration::days(diff as i64))?;
     if is_prev {
@@ -951,6 +956,7 @@ fn advance_day(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateT
     }
 }
 
+#[inline]
 fn advance_hour(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
     let new_dt = dt.checked_add_signed(chrono::Duration::hours(diff as i64))?;
     if is_prev {
@@ -960,6 +966,7 @@ fn advance_hour(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDate
     }
 }
 
+#[inline]
 fn advance_minute(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
     let new_dt = dt.checked_add_signed(chrono::Duration::minutes(diff as i64))?;
     if is_prev {
@@ -969,6 +976,7 @@ fn advance_minute(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDa
     }
 }
 
+#[inline]
 pub fn calc_candidate(
     now: NaiveDateTime,
     expanded: &[ExpandedField],
@@ -976,6 +984,19 @@ pub fn calc_candidate(
     nearest_weekday: &[u32],
     is_prev: bool,
     max_years: i64,
+) -> Result<NaiveDateTime, PyErr> {
+    calc_candidate_override(now, expanded, nth_weekday_of_month, nearest_weekday, is_prev, max_years, None)
+}
+
+#[inline]
+pub fn calc_candidate_override(
+    now: NaiveDateTime,
+    expanded: &[ExpandedField],
+    nth_weekday_of_month: &HashMap<u32, Vec<NthValue>>,
+    nearest_weekday: &[u32],
+    is_prev: bool,
+    max_years: i64,
+    wildcard_field: Option<usize>,
 ) -> Result<NaiveDateTime, PyErr> {
     let mut dt = if is_prev {
         now - chrono::Duration::microseconds(1)
@@ -999,7 +1020,7 @@ pub fn calc_candidate(
 
     while ((dt.year() - current_year).abs() as i64) <= max_years {
         // Proc year
-        if expanded.len() == 7 && !expanded[YEAR_FIELD].is_all() {
+        if expanded.len() == 7 && !expanded[YEAR_FIELD].is_all() && wildcard_field != Some(YEAR_FIELD) {
             if let ExpandedField::Values(vals) = &expanded[YEAR_FIELD] {
                 let diff = nearest_diff_year(dt.year(), vals, is_prev);
                 if diff.is_none() {
@@ -1023,7 +1044,7 @@ pub fn calc_candidate(
         }
 
         // Proc month
-        if !expanded[MONTH_FIELD].is_all() {
+        if !expanded[MONTH_FIELD].is_all() && wildcard_field != Some(MONTH_FIELD) {
             if let ExpandedField::Values(vals) = &expanded[MONTH_FIELD] {
                 let diff = nearest_diff_cyclic(dt.month() as i32, vals, 12, is_prev);
                 if diff != 0 {
@@ -1073,7 +1094,7 @@ pub fn calc_candidate(
                 })?;
                 continue;
             }
-        } else if !expanded[DAY_FIELD].is_all() {
+        } else if !expanded[DAY_FIELD].is_all() && wildcard_field != Some(DAY_FIELD) {
             if let ExpandedField::Values(vals) = &expanded[DAY_FIELD] {
                 let days_in_month = last_day_of_month(dt.year(), dt.month());
                 let has_last = vals.contains(&ExpandedVal::Last);
@@ -1153,7 +1174,7 @@ pub fn calc_candidate(
                 })?;
                 continue;
             }
-        } else if !expanded[DOW_FIELD].is_all() {
+        } else if !expanded[DOW_FIELD].is_all() && wildcard_field != Some(DOW_FIELD) {
             if let ExpandedField::Values(vals) = &expanded[DOW_FIELD] {
                 let cur_dow = day_of_week(dt.year(), dt.month(), dt.day());
                 let diff = nearest_diff_cyclic(cur_dow as i32, vals, 7, is_prev);
@@ -1167,7 +1188,7 @@ pub fn calc_candidate(
         }
 
         // Proc hour
-        if !expanded[HOUR_FIELD].is_all() {
+        if !expanded[HOUR_FIELD].is_all() && wildcard_field != Some(HOUR_FIELD) {
             if let ExpandedField::Values(vals) = &expanded[HOUR_FIELD] {
                 let diff = nearest_diff_cyclic(dt.hour() as i32, vals, 24, is_prev);
                 if diff != 0 {
@@ -1180,7 +1201,7 @@ pub fn calc_candidate(
         }
 
         // Proc minute
-        if !expanded[MINUTE_FIELD].is_all() {
+        if !expanded[MINUTE_FIELD].is_all() && wildcard_field != Some(MINUTE_FIELD) {
             if let ExpandedField::Values(vals) = &expanded[MINUTE_FIELD] {
                 let diff = nearest_diff_cyclic(dt.minute() as i32, vals, 60, is_prev);
                 if diff != 0 {
@@ -1194,7 +1215,7 @@ pub fn calc_candidate(
 
         // Proc second
         if expanded.len() > 5 {
-            if !expanded[SECOND_FIELD].is_all() {
+            if !expanded[SECOND_FIELD].is_all() && wildcard_field != Some(SECOND_FIELD) {
                 if let ExpandedField::Values(vals) = &expanded[SECOND_FIELD] {
                     let diff = nearest_diff_cyclic(dt.second() as i32, vals, 60, is_prev);
                     if diff != 0 {
@@ -1219,6 +1240,7 @@ pub fn calc_candidate(
     }))
 }
 
+#[inline]
 pub fn calc_next(
     now: NaiveDateTime,
     expanded: &[ExpandedField],
@@ -1254,15 +1276,14 @@ pub fn calc_next(
 
         let clean_split = nth_weekday_of_month.is_empty() && nearest_weekday.is_empty();
 
-        let mut exp_dow_wild = expanded.to_vec();
-        exp_dow_wild[DOW_FIELD] = ExpandedField::All;
-        let t1 = calc_candidate(
+        let t1 = calc_candidate_override(
             now,
-            &exp_dow_wild,
+            expanded,
             nth_weekday_of_month,
             nearest_weekday,
             is_prev,
             max_years,
+            Some(DOW_FIELD),
         );
         let t1_opt = match t1 {
             Ok(dt) => Some(dt),
@@ -1274,15 +1295,14 @@ pub fn calc_next(
             }
         };
 
-        let mut exp_day_wild = expanded.to_vec();
-        exp_day_wild[DAY_FIELD] = ExpandedField::All;
-        let t2 = calc_candidate(
+        let t2 = calc_candidate_override(
             now,
-            &exp_day_wild,
+            expanded,
             nth_weekday_of_month,
             nearest_weekday,
             is_prev,
             max_years,
+            Some(DAY_FIELD),
         );
         let t2_opt = match t2 {
             Ok(dt) => Some(dt),
@@ -1366,6 +1386,12 @@ impl CroniterIterator {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReturnKind {
+    Float,
+    DateTime,
+}
+
 #[pyclass(name = "croniter", subclass)]
 pub struct Croniter {
     pub expr_format: String,
@@ -1382,6 +1408,7 @@ pub struct Croniter {
     pub cur: f64,
     pub tzinfo: Option<PyObject>,
     pub ret_type: PyObject,
+    pub ret_type_kind: ReturnKind,
 }
 
 #[pymethods]
@@ -1511,10 +1538,25 @@ impl Croniter {
             None
         };
 
-        let ret_type_obj = if let Some(rt) = ret_type {
-            rt.clone().unbind()
+        let (ret_type_obj, ret_type_kind) = if let Some(rt) = ret_type {
+            let dt_type = py.get_type::<pyo3::types::PyDateTime>();
+            let fl_type = py.get_type::<PyFloat>();
+            let kind = if rt.is(&dt_type) {
+                ReturnKind::DateTime
+            } else if rt.is(&fl_type) {
+                ReturnKind::Float
+            } else if let Ok(py_type) = rt.cast::<pyo3::types::PyType>() {
+                if py_type.is_subclass(&dt_type).unwrap_or(false) {
+                    ReturnKind::DateTime
+                } else {
+                    ReturnKind::Float
+                }
+            } else {
+                ReturnKind::Float
+            };
+            (rt.clone().unbind(), kind)
         } else {
-            py.get_type::<PyFloat>().into_any().unbind()
+            (py.get_type::<PyFloat>().into_any().unbind(), ReturnKind::Float)
         };
 
         let mut instance = Croniter {
@@ -1537,6 +1579,7 @@ impl Croniter {
             cur: 0.0,
             tzinfo: None,
             ret_type: ret_type_obj,
+            ret_type_kind,
         };
 
         if let Some(st) = start_time {
@@ -2350,24 +2393,31 @@ impl Croniter {
         }
         self.is_prev = is_prev;
 
-        let rt = if let Some(t) = ret_type {
-            t.clone().unbind()
-        } else {
-            self.ret_type.clone_ref(py)
+        let is_dt = match ret_type {
+            None => self.ret_type_kind == ReturnKind::DateTime,
+            Some(rt) => {
+                let dt_type = py.get_type::<pyo3::types::PyDateTime>();
+                let fl_type = py.get_type::<PyFloat>();
+                if rt.is(&fl_type) {
+                    false
+                } else if rt.is(&dt_type) {
+                    true
+                } else if let Ok(py_type) = rt.cast::<pyo3::types::PyType>() {
+                    let is_dt_sub = py_type.is_subclass(&dt_type).unwrap_or(false);
+                    let is_fl_sub = py_type.is_subclass(&fl_type).unwrap_or(false);
+                    if !is_dt_sub && !is_fl_sub {
+                        return Err(pyo3::exceptions::PyTypeError::new_err(
+                            "Invalid ret_type, only 'float' or 'datetime' is acceptable.",
+                        ));
+                    }
+                    is_dt_sub
+                } else {
+                    return Err(pyo3::exceptions::PyTypeError::new_err(
+                        "Invalid ret_type, only 'float' or 'datetime' is acceptable.",
+                    ));
+                }
+            }
         };
-
-        let dt_cls = py.import("datetime")?.getattr("datetime")?;
-        let float_cls = py.get_type::<PyFloat>();
-
-        let builtins = py.import("builtins")?;
-        let is_dt: bool = builtins.getattr("issubclass")?.call1((rt.bind(py), &dt_cls))?.extract()?;
-        let is_fl: bool = builtins.getattr("issubclass")?.call1((rt.bind(py), &float_cls))?.extract()?;
-
-        if !is_dt && !is_fl {
-            return Err(pyo3::exceptions::PyTypeError::new_err(
-                "Invalid ret_type, only 'float' or 'datetime' is acceptable.",
-            ));
-        }
 
         // Timezone aware path
         if self.tzinfo.is_some() {
@@ -2388,9 +2438,14 @@ impl Croniter {
             if !self.cur.is_finite() {
                 return Err(CroniterBadDateError::new_err("Timestamp must be finite"));
             }
-            let cur_sec = self.cur.floor() as i64;
-            let cur_usec = ((self.cur - self.cur.floor()) * 1e6).round() as u32;
-            let cur_nsec = cur_usec * 1000;
+            let cur_floor = self.cur.floor();
+            let cur_sec = cur_floor as i64;
+            let fract = self.cur - cur_floor;
+            let cur_nsec = if fract == 0.0 {
+                0
+            } else {
+                ((fract * 1e6).round() as u32) * 1000
+            };
             let naive_now = chrono::DateTime::from_timestamp(cur_sec, cur_nsec)
                 .map(|dt| dt.naive_utc())
                 .ok_or_else(|| CroniterBadDateError::new_err("Timestamp out of representable date range"))?;
@@ -2413,17 +2468,21 @@ impl Croniter {
             }
 
             if is_dt {
-                let py_dt = dt_cls.call1((
+                let py_dt = pyo3::types::PyDateTime::new(
+                    py,
                     result_naive.year(),
-                    result_naive.month(),
-                    result_naive.day(),
-                    result_naive.hour(),
-                    result_naive.minute(),
-                    result_naive.second(),
-                ))?;
-                Ok(py_dt.into())
+                    result_naive.month() as u8,
+                    result_naive.day() as u8,
+                    result_naive.hour() as u8,
+                    result_naive.minute() as u8,
+                    result_naive.second() as u8,
+                    0,
+                    None,
+                )?;
+                Ok(py_dt.into_any().unbind())
             } else {
-                Ok(ts.into_pyobject(py)?.into_any().unbind())
+                let py_fl = pyo3::types::PyFloat::new(py, ts);
+                Ok(py_fl.into_any().unbind())
             }
         }
     }
@@ -2444,6 +2503,7 @@ impl Croniter {
             cur: self.cur,
             tzinfo: self.tzinfo.as_ref().map(|o| o.clone_ref(py)),
             ret_type: self.ret_type.clone_ref(py),
+            ret_type_kind: self.ret_type_kind,
         })
     }
 }

@@ -9,6 +9,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    overload,
 )
 
 _T = TypeVar("_T", float, datetime.datetime)
@@ -29,6 +30,9 @@ VALID_LEN_EXPRESSION: Set[int]
 UTC_DT: datetime.timezone
 EPOCH: datetime.datetime
 OVERFLOW32B_MODE: bool
+
+DOW_ALPHAS: dict[str, int]
+M_ALPHAS: dict[str, int]
 
 cron_m: Any
 
@@ -78,33 +82,122 @@ class croniter:
         expand_from_start_time: bool = False,
     ) -> None: ...
 
+    @overload
     def get_next(
         self,
-        ret_type: Optional[Type[_T]] = None,
+        ret_type: None = None,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+        update_current: bool = True,
+    ) -> float: ...
+    @overload
+    def get_next(
+        self,
+        ret_type: Type[datetime.datetime] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+        update_current: bool = True,
+    ) -> datetime.datetime: ...
+    @overload
+    def get_next(
+        self,
+        ret_type: Type[float] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+        update_current: bool = True,
+    ) -> float: ...
+    @overload
+    def get_next(
+        self,
+        ret_type: Type[_T] = ...,
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> _T: ...
 
+    @overload
     def get_prev(
         self,
-        ret_type: Optional[Type[_T]] = None,
+        ret_type: None = None,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+        update_current: bool = True,
+    ) -> float: ...
+    @overload
+    def get_prev(
+        self,
+        ret_type: Type[datetime.datetime] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+        update_current: bool = True,
+    ) -> datetime.datetime: ...
+    @overload
+    def get_prev(
+        self,
+        ret_type: Type[float] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+        update_current: bool = True,
+    ) -> float: ...
+    @overload
+    def get_prev(
+        self,
+        ret_type: Type[_T] = ...,
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> _T: ...
 
+    @overload
     def next(
         self,
-        ret_type: Optional[Type[_T]] = None,
+        ret_type: None = None,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+    ) -> float: ...
+    @overload
+    def next(
+        self,
+        ret_type: Type[datetime.datetime] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+    ) -> datetime.datetime: ...
+    @overload
+    def next(
+        self,
+        ret_type: Type[float] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+    ) -> float: ...
+    @overload
+    def next(
+        self,
+        ret_type: Type[_T] = ...,
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> _T: ...
 
+    @overload
     def prev(
         self,
-        ret_type: Optional[Type[_T]] = None,
+        ret_type: None = None,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+    ) -> float: ...
+    @overload
+    def prev(
+        self,
+        ret_type: Type[datetime.datetime] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+    ) -> datetime.datetime: ...
+    @overload
+    def prev(
+        self,
+        ret_type: Type[float] = ...,
+        start_time: Optional[Union[float, int, datetime.datetime]] = None,
+    ) -> float: ...
+    @overload
+    def prev(
+        self,
+        ret_type: Type[_T] = ...,
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> _T: ...
 
-    def get_current(self, ret_type: Optional[Type[_T]] = None) -> _T: ...
+    @overload
+    def get_current(self, ret_type: None = None) -> float: ...
+    @overload
+    def get_current(self, ret_type: Type[datetime.datetime] = ...) -> datetime.datetime: ...
+    @overload
+    def get_current(self, ret_type: Type[float] = ...) -> float: ...
+    @overload
+    def get_current(self, ret_type: Type[_T] = ...) -> _T: ...
     def set_current(
         self,
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
@@ -181,11 +274,48 @@ class croniter:
 
 def datetime_to_timestamp(d: datetime.datetime) -> float: ...
 
+@overload
 def croniter_range(
     start: Union[float, int, datetime.datetime],
     stop: Union[float, int, datetime.datetime],
     expr_format: str,
-    ret_type: Optional[Type[_T]] = None,
+    ret_type: None = None,
+    day_or: bool = True,
+    exclude_ends: bool = False,
+    _croniter: Optional[Type[croniter]] = None,
+    second_at_beginning: bool = False,
+    expand_from_start_time: bool = False,
+) -> Generator[float, None, None]: ...
+@overload
+def croniter_range(
+    start: Union[float, int, datetime.datetime],
+    stop: Union[float, int, datetime.datetime],
+    expr_format: str,
+    ret_type: Type[datetime.datetime] = ...,
+    day_or: bool = True,
+    exclude_ends: bool = False,
+    _croniter: Optional[Type[croniter]] = None,
+    second_at_beginning: bool = False,
+    expand_from_start_time: bool = False,
+) -> Generator[datetime.datetime, None, None]: ...
+@overload
+def croniter_range(
+    start: Union[float, int, datetime.datetime],
+    stop: Union[float, int, datetime.datetime],
+    expr_format: str,
+    ret_type: Type[float] = ...,
+    day_or: bool = True,
+    exclude_ends: bool = False,
+    _croniter: Optional[Type[croniter]] = None,
+    second_at_beginning: bool = False,
+    expand_from_start_time: bool = False,
+) -> Generator[float, None, None]: ...
+@overload
+def croniter_range(
+    start: Union[float, int, datetime.datetime],
+    stop: Union[float, int, datetime.datetime],
+    expr_format: str,
+    ret_type: Type[_T] = ...,
     day_or: bool = True,
     exclude_ends: bool = False,
     _croniter: Optional[Type[croniter]] = None,
