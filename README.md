@@ -17,7 +17,7 @@
 
 A high-performance, drop-in Rust replacement for Python's `croniter` library with PyO3 bindings and 100% upstream test compatibility.
 
-fast-croniter accelerates cron iteration, timestamp resolution, and expression validation by **17x to 45x** compared to pure-Python implementations. It requires zero code changes for existing applications using `croniter`.
+fast-croniter accelerates cron iteration, timestamp resolution, and expression validation by **20x to 207x** compared to pure-Python implementations. It requires zero code changes for existing applications using `croniter`.
 
 <p align="center">
   <img src="assets/terminal-logo.svg" alt="fast-croniter Terminal Verification and Benchmark" width="100%">
@@ -33,7 +33,7 @@ fast-croniter ports the complete recurrence engine to compiled Rust with native 
 
 - **Drop-in Migration**: Replace `import croniter` with `import fast_croniter as croniter`. All classes, method signatures, return types, constants, and exceptions are identical.
 - **100% Upstream Parity**: Validated against all 267 test cases in the `kiorky/croniter` test suite, including DST transitions, `H`/`R` hashed jitter, and ISC/Vixie compatibility mode.
-- **Throughput**: Computes over **921,000 recurrence iterations per second** on a single thread.
+- **Throughput**: Computes over **6,310,000 recurrence iterations per second** on a single thread with zero heap allocation per step.
 - **Minimal Runtime Dependencies**: Requires only `python-dateutil` for full timezone and DST parity with upstream `croniter`.
 - **AI Agent & LLM Ready**: Ships with [llms.txt](llms.txt) for context ingestion by AI coding assistants.
 
@@ -41,18 +41,18 @@ fast-croniter ports the complete recurrence engine to compiled Rust with native 
 
 ## Performance Benchmarks
 
-Measured over 20,000 iterations per scenario comparing `croniter` (pure Python upstream) against `fast-croniter` (Rust / PyO3) on identical inputs:
+Measured over 10,000 iterations per scenario comparing `croniter` (pure Python upstream) against `fast-croniter` (Rust / PyO3) with GC isolation and 3-pass minimum execution:
 
 | Benchmark Scenario | Python `croniter` | Rust `fast-croniter` | Throughput Speedup |
 |:---|---:|---:|---:|
-| Complex Expression (`15 2,4,6 1-15 1,6,12 1-5`) | 10,534 ops/sec | **429,651 ops/sec** | **40.8x faster** |
-| Hourly with Days (`0 0-23/2 * * mon-fri`) | 27,480 ops/sec | **836,544 ops/sec** | **30.4x faster** |
-| Expression Validation (`is_valid`) | 9,057 ops/sec | **240,471 ops/sec** | **26.6x faster** |
-| Simple Step (`*/5 * * * *`, float) | 40,112 ops/sec | **921,141 ops/sec** | **23.0x faster** |
-| Second Precision (`*/10 */2 * * * */15`) | 38,779 ops/sec | **871,847 ops/sec** | **22.5x faster** |
-| Range Generation (`croniter_range`, 432k points) | 11.55s | **0.60s** | **19.1x faster** |
-| Simple Step (`*/5 * * * *`, datetime) | 39,125 ops/sec | **726,993 ops/sec** | **18.6x faster** |
-| Fresh Instance Creation + Next (Airflow task runner) | 9,269 ops/sec | **155,634 ops/sec** | **16.8x faster** |
+| Hourly with Days (`0 0-23/2 * * mon-fri`, float) | 20,718 ops/sec | **4,297,194 ops/sec** | **207.4x faster** |
+| Simple Step (`*/5 * * * *`, float) | 34,220 ops/sec | **6,313,929 ops/sec** | **184.5x faster** |
+| Complex Multi-field (`15 2,4,6 1-15 1,6,12 1-5`, datetime) | 8,321 ops/sec | **1,262,738 ops/sec** | **151.8x faster** |
+| Second Precision (`*/10 */2 * * * */15`, float) | 32,297 ops/sec | **4,649,649 ops/sec** | **144.0x faster** |
+| Day OR Union (`0 0 10 * wed`, datetime) | 11,278 ops/sec | **1,087,181 ops/sec** | **96.4x faster** |
+| Simple Step (`*/5 * * * *`, datetime) | 31,544 ops/sec | **2,167,834 ops/sec** | **68.7x faster** |
+| Expression Validation (`is_valid`, 10k calls) | 7,107 ops/sec | **163,387 ops/sec** | **23.0x faster** |
+| Range Generation (`croniter_range`, 10k items) | 32,453 items/sec | **629,508 items/sec** | **19.4x faster** |
 
 * **Parity Guarantee**: Verified across 50,000 continuous iterations against upstream `kiorky/croniter`: **0 timestamp mismatches** (100% exact parity).
 

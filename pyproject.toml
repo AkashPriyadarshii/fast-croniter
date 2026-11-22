@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "fast-croniter"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fast, memory-safe, drop-in Rust replacement for Python croniter with PyO3 bindings"
 readme = "README.md"
 requires-python = ">=3.8"

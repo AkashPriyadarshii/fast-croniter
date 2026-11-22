@@ -1,6 +1,6 @@
 [package]
 name = "fast-croniter"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Akash Priyadarshi <272530059+AkashPriyadarshii@users.noreply.github.com>"]
 description = "Fast, memory-safe, drop-in Rust replacement for Python croniter with PyO3 bindings"
