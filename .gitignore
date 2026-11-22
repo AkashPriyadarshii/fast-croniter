@@ -12,3 +12,5 @@ upstream-croniter/
 *.log
 *.db
 .pytest_cache/
+*portrait.png
+assets/*portrait.png
