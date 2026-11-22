@@ -3,8 +3,9 @@
 > A high-performance, drop-in Rust replacement for Python's `croniter` library, built with PyO3 and abi3 for Python 3.8 through 3.13.
 
 ## Overview
-fast-croniter provides an identical API to `croniter` with up to 41x speedup in iteration, datetime calculation, and syntax validation. It compiles to native machine code with only `python-dateutil` as a runtime requirement.
+fast-croniter provides an identical API to `croniter` with up to 207x speedup (6.3M+ ops/sec) in iteration, datetime calculation, and syntax validation. It compiles to native machine code with only `python-dateutil` as a runtime requirement.
 
+- Documentation & Playground: https://fast-croniter-site.vercel.app
 - Repository: https://github.com/AkashPriyadarshii/fast-croniter
 - License: MIT OR Apache-2.0
 - Python Support: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 (abi3 wheels)
@@ -14,7 +15,7 @@ fast-croniter provides an identical API to `croniter` with up to 41x speedup in 
 - 100% Upstream Test Parity: Passes all 267 reference tests from `kiorky/croniter`.
 - Precision Timezone & DST: Correct handling of DST spring forward, fall back, and ambiguous transitions (Lord Howe, New York, UTC).
 - Extended Cron Syntax: Full support for second precision (6-field cron), `H`/`R` hashed jitter, step expressions, ranges, comma lists, and ISC/Vixie compatibility mode.
-- High Throughput: 780,000 to 960,000 iterations per second for high-frequency schedulers (Airflow, Celery, Prefect, Dagster).
+- High Throughput: 1,000,000 to 6,310,000 iterations per second for high-frequency schedulers (Airflow, Celery, Prefect, Dagster).
 
 ## Quickstart
 

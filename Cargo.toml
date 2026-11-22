@@ -6,7 +6,7 @@ authors = ["Akash Priyadarshi <272530059+AkashPriyadarshii@users.noreply.github.
 description = "Fast, memory-safe, drop-in Rust replacement for Python croniter with PyO3 bindings"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/AkashPriyadarshii/fast-croniter"
-homepage = "https://github.com/AkashPriyadarshii/fast-croniter"
+homepage = "https://fast-croniter-site.vercel.app"
 keywords = ["cron", "croniter", "pyo3", "scheduler", "airflow"]
 
 [lib]

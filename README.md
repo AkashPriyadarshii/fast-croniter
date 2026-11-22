@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://fast-croniter-site.vercel.app"><img src="https://img.shields.io/badge/docs-website-blue?style=flat-square&logo=vercel" alt="Documentation Website"></a>
   <a href="https://github.com/AkashPriyadarshii/fast-croniter/actions/workflows/CI.yml"><img src="https://img.shields.io/github/actions/workflow/status/AkashPriyadarshii/fast-croniter/CI.yml?branch=master&style=flat-square&label=CI" alt="CI Status"></a>
   <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/pypi/v/fast-croniter?style=flat-square&color=blue&logo=pypi&logoColor=white" alt="PyPI Version"></a>
   <a href="https://pypi.org/project/fast-croniter/"><img src="https://img.shields.io/badge/python-3.8+-blue?style=flat-square&logo=python&logoColor=white" alt="Python Versions"></a>
@@ -16,6 +17,8 @@
 # fast-croniter
 
 A high-performance, drop-in Rust replacement for Python's `croniter` library with PyO3 bindings and 100% upstream test compatibility.
+
+📖 **Documentation & Interactive Playground**: [https://fast-croniter-site.vercel.app](https://fast-croniter-site.vercel.app)
 
 fast-croniter accelerates cron iteration, timestamp resolution, and expression validation by **20x to 207x** compared to pure-Python implementations. It requires zero code changes for existing applications using `croniter`.
 

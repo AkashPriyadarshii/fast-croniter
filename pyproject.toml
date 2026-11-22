@@ -36,8 +36,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AkashPriyadarshii/fast-croniter"
+Homepage = "https://fast-croniter-site.vercel.app"
+Documentation = "https://fast-croniter-site.vercel.app"
 Repository = "https://github.com/AkashPriyadarshii/fast-croniter"
+Changelog = "https://github.com/AkashPriyadarshii/fast-croniter/blob/master/CHANGELOG.md"
 Issues = "https://github.com/AkashPriyadarshii/fast-croniter/issues"
 Changelog = "https://github.com/AkashPriyadarshii/fast-croniter/blob/master/CHANGELOG.md"
 
