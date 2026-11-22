@@ -169,8 +169,9 @@ pub fn get_low_from_current_date_number(field_index: usize, step: u32, dt: Naive
         }
         SECOND_FIELD => dt.second() % step,
         YEAR_FIELD => {
-            let year_start = RANGES[YEAR_FIELD].0;
-            ((dt.year() as u32 - year_start) % step) + year_start
+            let year_start = RANGES[YEAR_FIELD].0 as i32;
+            let diff = (dt.year() - year_start).rem_euclid(step as i32);
+            (year_start + diff) as u32
         }
         _ => 0,
     }
@@ -777,12 +778,12 @@ fn expand_hash_or_random(
 }
 
 fn rand_u32() -> u32 {
-    use std::time::SystemTime;
-    let nanos = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .map(|d| d.subsec_nanos())
-        .unwrap_or(123456789);
-    nanos ^ (nanos << 13) ^ (nanos >> 17) ^ (nanos << 5)
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static SEED: AtomicU64 = AtomicU64::new(0x853c49e6748fea9b);
+    let mut s = SEED.fetch_add(0x9e3779b97f4a7c15, Ordering::Relaxed);
+    s = (s ^ (s >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+    s = (s ^ (s >> 27)).wrapping_mul(0x94d049bb133111eb);
+    (s ^ (s >> 31)) as u32
 }
 
 fn nearest_diff_cyclic(x: i32, vals: &[ExpandedVal], range_val: i32, is_prev: bool) -> i32 {
@@ -923,46 +924,48 @@ fn nearest_diff_day(x: i32, vals: &[ExpandedVal], range_val: i32, is_prev: bool)
     }
 }
 
-fn advance_month(dt: NaiveDateTime, diff: i32, is_prev: bool) -> NaiveDateTime {
-    let total_months = dt.year() * 12 + (dt.month() as i32 - 1) + diff;
-    let new_year = total_months.div_euclid(12);
+fn advance_month(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
+    let total_months = (dt.year() as i64) * 12 + (dt.month() as i64 - 1) + (diff as i64);
+    let new_year_i64 = total_months.div_euclid(12);
+    if new_year_i64 < -262143 || new_year_i64 > 262142 {
+        return None;
+    }
+    let new_year = new_year_i64 as i32;
     let new_month = (total_months.rem_euclid(12) + 1) as u32;
     if is_prev {
         let new_day = last_day_of_month(new_year, new_month);
         NaiveDate::from_ymd_opt(new_year, new_month, new_day)
             .and_then(|d| d.and_hms_opt(23, 59, 59))
-            .unwrap_or(dt)
     } else {
         NaiveDate::from_ymd_opt(new_year, new_month, 1)
             .and_then(|d| d.and_hms_opt(0, 0, 0))
-            .unwrap_or(dt)
     }
 }
 
-fn advance_day(dt: NaiveDateTime, diff: i32, is_prev: bool) -> NaiveDateTime {
-    let new_date = dt.date() + chrono::Duration::days(diff as i64);
+fn advance_day(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
+    let new_date = dt.date().checked_add_signed(chrono::Duration::days(diff as i64))?;
     if is_prev {
-        new_date.and_hms_opt(23, 59, 59).unwrap()
+        new_date.and_hms_opt(23, 59, 59)
     } else {
-        new_date.and_hms_opt(0, 0, 0).unwrap()
+        new_date.and_hms_opt(0, 0, 0)
     }
 }
 
-fn advance_hour(dt: NaiveDateTime, diff: i32, is_prev: bool) -> NaiveDateTime {
-    let new_dt = dt + chrono::Duration::hours(diff as i64);
+fn advance_hour(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
+    let new_dt = dt.checked_add_signed(chrono::Duration::hours(diff as i64))?;
     if is_prev {
-        new_dt.with_minute(59).unwrap().with_second(59).unwrap()
+        new_dt.with_minute(59)?.with_second(59)
     } else {
-        new_dt.with_minute(0).unwrap().with_second(0).unwrap()
+        new_dt.with_minute(0)?.with_second(0)
     }
 }
 
-fn advance_minute(dt: NaiveDateTime, diff: i32, is_prev: bool) -> NaiveDateTime {
-    let new_dt = dt + chrono::Duration::minutes(diff as i64);
+fn advance_minute(dt: NaiveDateTime, diff: i32, is_prev: bool) -> Option<NaiveDateTime> {
+    let new_dt = dt.checked_add_signed(chrono::Duration::minutes(diff as i64))?;
     if is_prev {
-        new_dt.with_second(59).unwrap()
+        new_dt.with_second(59)
     } else {
-        new_dt.with_second(0).unwrap()
+        new_dt.with_second(0)
     }
 }
 
@@ -1024,7 +1027,9 @@ pub fn calc_candidate(
             if let ExpandedField::Values(vals) = &expanded[MONTH_FIELD] {
                 let diff = nearest_diff_cyclic(dt.month() as i32, vals, 12, is_prev);
                 if diff != 0 {
-                    dt = advance_month(dt, diff, is_prev);
+                    dt = advance_month(dt, diff, is_prev).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while advancing month")
+                    })?;
                     continue;
                 }
             }
@@ -1041,13 +1046,21 @@ pub fn calc_candidate(
             }
             if candidates.is_empty() {
                 dt = if is_prev {
-                    let first = NaiveDate::from_ymd_opt(dt.year(), dt.month(), 1).unwrap();
-                    let prev_last = first - chrono::Duration::days(1);
-                    prev_last.and_hms_opt(23, 59, 59).unwrap()
+                    let first = NaiveDate::from_ymd_opt(dt.year(), dt.month(), 1).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Invalid date representation")
+                    })?;
+                    let prev_last = first.checked_sub_signed(chrono::Duration::days(1)).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while decrementing day")
+                    })?;
+                    prev_last.and_hms_opt(23, 59, 59).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Invalid time representation")
+                    })?
                 } else {
                     let days = last_day_of_month(dt.year(), dt.month());
                     let to_add = days - dt.day() + 1;
-                    (dt.date() + chrono::Duration::days(to_add as i64)).and_hms_opt(0, 0, 0).unwrap()
+                    dt.date().checked_add_signed(chrono::Duration::days(to_add as i64)).and_then(|d| d.and_hms_opt(0, 0, 0)).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while advancing day")
+                    })?
                 };
                 continue;
             }
@@ -1055,7 +1068,9 @@ pub fn calc_candidate(
             let target_day = if is_prev { *candidates.last().unwrap() } else { candidates[0] };
             let diff_day = target_day as i32 - dt.day() as i32;
             if diff_day != 0 {
-                dt = advance_day(dt, diff_day, is_prev);
+                dt = advance_day(dt, diff_day, is_prev).ok_or_else(|| {
+                    CroniterBadDateError::new_err("Date overflow while advancing day")
+                })?;
                 continue;
             }
         } else if !expanded[DAY_FIELD].is_all() {
@@ -1077,7 +1092,9 @@ pub fn calc_candidate(
                     };
                     let diff = nearest_diff_day(dt.day() as i32, vals, range_val as i32, is_prev);
                     if diff != 0 {
-                        dt = advance_day(dt, diff, is_prev);
+                        dt = advance_day(dt, diff, is_prev).ok_or_else(|| {
+                            CroniterBadDateError::new_err("Date overflow while advancing day")
+                        })?;
                         continue;
                     }
                 }
@@ -1109,13 +1126,21 @@ pub fn calc_candidate(
             }
             if candidates.is_empty() {
                 dt = if is_prev {
-                    let first = NaiveDate::from_ymd_opt(dt.year(), dt.month(), 1).unwrap();
-                    let prev_last = first - chrono::Duration::days(1);
-                    prev_last.and_hms_opt(23, 59, 59).unwrap()
+                    let first = NaiveDate::from_ymd_opt(dt.year(), dt.month(), 1).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Invalid date representation")
+                    })?;
+                    let prev_last = first.checked_sub_signed(chrono::Duration::days(1)).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while decrementing day")
+                    })?;
+                    prev_last.and_hms_opt(23, 59, 59).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Invalid time representation")
+                    })?
                 } else {
                     let days = last_day_of_month(dt.year(), dt.month());
                     let to_add = days - dt.day() + 1;
-                    (dt.date() + chrono::Duration::days(to_add as i64)).and_hms_opt(0, 0, 0).unwrap()
+                    dt.date().checked_add_signed(chrono::Duration::days(to_add as i64)).and_then(|d| d.and_hms_opt(0, 0, 0)).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while advancing day")
+                    })?
                 };
                 continue;
             }
@@ -1123,7 +1148,9 @@ pub fn calc_candidate(
             let target_day = if is_prev { *candidates.last().unwrap() } else { candidates[0] };
             let diff_day = target_day as i32 - dt.day() as i32;
             if diff_day != 0 {
-                dt = advance_day(dt, diff_day, is_prev);
+                dt = advance_day(dt, diff_day, is_prev).ok_or_else(|| {
+                    CroniterBadDateError::new_err("Date overflow while advancing day")
+                })?;
                 continue;
             }
         } else if !expanded[DOW_FIELD].is_all() {
@@ -1131,7 +1158,9 @@ pub fn calc_candidate(
                 let cur_dow = day_of_week(dt.year(), dt.month(), dt.day());
                 let diff = nearest_diff_cyclic(cur_dow as i32, vals, 7, is_prev);
                 if diff != 0 {
-                    dt = advance_day(dt, diff, is_prev);
+                    dt = advance_day(dt, diff, is_prev).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while advancing day")
+                    })?;
                     continue;
                 }
             }
@@ -1142,7 +1171,9 @@ pub fn calc_candidate(
             if let ExpandedField::Values(vals) = &expanded[HOUR_FIELD] {
                 let diff = nearest_diff_cyclic(dt.hour() as i32, vals, 24, is_prev);
                 if diff != 0 {
-                    dt = advance_hour(dt, diff, is_prev);
+                    dt = advance_hour(dt, diff, is_prev).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while advancing hour")
+                    })?;
                     continue;
                 }
             }
@@ -1153,7 +1184,9 @@ pub fn calc_candidate(
             if let ExpandedField::Values(vals) = &expanded[MINUTE_FIELD] {
                 let diff = nearest_diff_cyclic(dt.minute() as i32, vals, 60, is_prev);
                 if diff != 0 {
-                    dt = advance_minute(dt, diff, is_prev);
+                    dt = advance_minute(dt, diff, is_prev).ok_or_else(|| {
+                        CroniterBadDateError::new_err("Date overflow while advancing minute")
+                    })?;
                     continue;
                 }
             }
@@ -1165,13 +1198,15 @@ pub fn calc_candidate(
                 if let ExpandedField::Values(vals) = &expanded[SECOND_FIELD] {
                     let diff = nearest_diff_cyclic(dt.second() as i32, vals, 60, is_prev);
                     if diff != 0 {
-                        dt += chrono::Duration::seconds(diff as i64);
+                        dt = dt.checked_add_signed(chrono::Duration::seconds(diff as i64)).ok_or_else(|| {
+                            CroniterBadDateError::new_err("Date overflow while advancing second")
+                        })?;
                         continue;
                     }
                 }
             }
         } else {
-            dt = dt.with_second(0).unwrap();
+            dt = dt.with_second(0).unwrap_or(dt);
         }
 
         return Ok(dt);
@@ -1360,6 +1395,25 @@ impl Croniter {
         }
         let t = PyTuple::new(py, items)?;
         Ok(t.into())
+    }
+
+    #[classattr]
+    #[pyo3(name = "DAYS_IN_MONTH")]
+    fn class_days_in_month(py: Python<'_>) -> PyResult<PyObject> {
+        let d = PyDict::new(py);
+        d.set_item(1, 31)?;
+        d.set_item(2, 28)?;
+        d.set_item(3, 31)?;
+        d.set_item(4, 30)?;
+        d.set_item(5, 31)?;
+        d.set_item(6, 30)?;
+        d.set_item(7, 31)?;
+        d.set_item(8, 31)?;
+        d.set_item(9, 30)?;
+        d.set_item(10, 31)?;
+        d.set_item(11, 30)?;
+        d.set_item(12, 31)?;
+        Ok(d.into())
     }
 
     #[classattr]
@@ -1942,7 +1996,7 @@ impl Croniter {
 
     #[classmethod]
     #[pyo3(signature = (
-        expression,
+        cron_expression,
         hash_id=None,
         second_at_beginning=false,
         from_timestamp=None,
@@ -1953,7 +2007,7 @@ impl Croniter {
     pub fn expand(
         _cls: &Bound<'_, pyo3::types::PyType>,
         py: Python<'_>,
-        expression: &str,
+        cron_expression: &str,
         hash_id: Option<&Bound<'_, PyAny>>,
         second_at_beginning: Option<bool>,
         from_timestamp: Option<f64>,
@@ -1961,6 +2015,7 @@ impl Croniter {
         strict: Option<bool>,
         strict_year: Option<&Bound<'_, PyAny>>,
     ) -> PyResult<PyObject> {
+        let expression = cron_expression;
         let hash_bytes: Option<Vec<u8>> = if let Some(h) = hash_id {
             if let Ok(b) = h.extract::<Vec<u8>>() {
                 Some(b)
@@ -2061,7 +2116,7 @@ impl Croniter {
 
     #[classmethod]
     #[pyo3(name = "match", signature = (
-        expression,
+        cron_expression,
         testdate,
         day_or=true,
         second_at_beginning=false,
@@ -2070,18 +2125,18 @@ impl Croniter {
     pub fn match_fn(
         cls: &Bound<'_, pyo3::types::PyType>,
         py: Python<'_>,
-        expression: &str,
+        cron_expression: &str,
         testdate: &Bound<'_, PyAny>,
         day_or: Option<bool>,
         second_at_beginning: Option<bool>,
         precision_in_seconds: Option<f64>,
     ) -> PyResult<bool> {
-        Self::match_range(cls, py, expression, testdate, testdate, day_or, second_at_beginning, precision_in_seconds)
+        Self::match_range(cls, py, cron_expression, testdate, testdate, day_or, second_at_beginning, precision_in_seconds)
     }
 
     #[classmethod]
     #[pyo3(signature = (
-        expression,
+        cron_expression,
         from_datetime,
         to_datetime,
         day_or=true,
@@ -2091,13 +2146,14 @@ impl Croniter {
     pub fn match_range(
         _cls: &Bound<'_, pyo3::types::PyType>,
         py: Python<'_>,
-        expression: &str,
+        cron_expression: &str,
         from_datetime: &Bound<'_, PyAny>,
         to_datetime: &Bound<'_, PyAny>,
         day_or: Option<bool>,
         second_at_beginning: Option<bool>,
         precision_in_seconds: Option<f64>,
     ) -> PyResult<bool> {
+        let expression = cron_expression;
         let dt_cls = py.import("datetime")?.getattr("datetime")?;
         let mut cron = Croniter::new(
             py,
@@ -2183,12 +2239,15 @@ impl Croniter {
 
     // Direct Rust calculation helper for timezone bridge
     pub fn _calc_naive(&self, cur_ts: f64, is_prev: bool) -> PyResult<f64> {
+        if !cur_ts.is_finite() {
+            return Err(CroniterBadDateError::new_err("Timestamp must be finite"));
+        }
         let sec = cur_ts.floor() as i64;
         let usec = ((cur_ts - cur_ts.floor()) * 1e6).round() as u32;
         let nsec = usec * 1000;
         let naive_now = chrono::DateTime::from_timestamp(sec, nsec)
             .map(|dt| dt.naive_utc())
-            .unwrap_or_else(|| NaiveDate::from_ymd_opt(1970, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap());
+            .ok_or_else(|| CroniterBadDateError::new_err("Timestamp out of representable date range"))?;
 
         let res = calc_next(
             naive_now,
@@ -2260,6 +2319,17 @@ impl Croniter {
         self.is_prev
     }
 
+    #[getter]
+    pub fn _is_prev(&self) -> bool {
+        self.is_prev
+    }
+
+    #[setter]
+    #[allow(non_snake_case)]
+    pub fn set__is_prev(&mut self, val: bool) {
+        self.is_prev = val;
+    }
+
     #[setter]
     pub fn set_is_prev(&mut self, val: bool) {
         self.is_prev = val;
@@ -2315,12 +2385,15 @@ impl Croniter {
             }
         } else {
             // Pure native Rust path
+            if !self.cur.is_finite() {
+                return Err(CroniterBadDateError::new_err("Timestamp must be finite"));
+            }
             let cur_sec = self.cur.floor() as i64;
             let cur_usec = ((self.cur - self.cur.floor()) * 1e6).round() as u32;
             let cur_nsec = cur_usec * 1000;
             let naive_now = chrono::DateTime::from_timestamp(cur_sec, cur_nsec)
                 .map(|dt| dt.naive_utc())
-                .unwrap_or_else(|| NaiveDate::from_ymd_opt(1970, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap());
+                .ok_or_else(|| CroniterBadDateError::new_err("Timestamp out of representable date range"))?;
 
             let result_naive = calc_next(
                 naive_now,

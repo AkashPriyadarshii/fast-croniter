@@ -173,6 +173,7 @@ def _calc_next_tz(cron, is_prev):
 
 class croniter(_NativeCroniter):
     MONTHS_IN_YEAR = 12
+    DAYS_IN_MONTH = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
     RANGES = ((0, 59), (0, 23), (1, 31), (1, 12), (0, 6), (0, 59), (1970, 2099))
     ALPHACONV = (
         {},
@@ -292,3 +293,6 @@ __all__ = [
     "croniter_range",
     "datetime_to_timestamp",
 ]
+
+import sys
+sys.modules[__name__ + ".croniter"] = sys.modules[__name__]
