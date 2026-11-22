@@ -14,3 +14,4 @@ upstream-croniter/
 .pytest_cache/
 *portrait.png
 assets/*portrait.png
+*report.png
