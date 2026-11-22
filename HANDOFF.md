@@ -2,7 +2,8 @@
 
 **Date**: 2026-11-22
 **Repository**: `AkashPriyadarshii/fast-croniter`
-**Current Branch**: `master` (6 atomic commits ahead of `origin/master`)
+**Current Branch**: `master` (synchronized with `origin/master`, tag `v0.2.0` published)
+**Release Status**: Published on GitHub Releases (`v0.2.0`) and PyPI (`0.2.0`)
 **Maintainer Identity**: `AkashPriyadarshii <272530059+AkashPriyadarshii@users.noreply.github.com>`
 **Official Docs / Playground**: [https://fast-croniter-site.vercel.app](https://fast-croniter-site.vercel.app)
 
@@ -91,15 +92,13 @@ cargo clippy --all-targets -- -D warnings
 
 ---
 
-## 5. Local Commit Stack Ready for Push
+## 5. Release Status & CI Verification
 
-The following 6 Conventional Commits are recorded on `master`:
-1. `c728443`: `fix(packaging): remove duplicate Changelog key and update SECURITY.md [skip ci]`
-2. `6138793`: `docs: link documentation and playground website https://fast-croniter-site.vercel.app [skip ci]`
-3. `50b2c71`: `chore: update Cargo.lock for v0.2.0`
-4. `0c28bc8`: `chore(release): bump version to 0.2.0 and update documentation`
-5. `1078776`: `perf(core): eliminate heap allocations in day_or matching and optimize pyo3 dispatch`
-6. `7670e33`: `fix(parity): harden bounds, resolve infinite date loop and align classmethod signatures`
+The `v0.2.0` release workflow passed 100% green across all matrix targets:
+- **Run ID**: [45003156674](https://github.com/AkashPriyadarshii/fast-croniter/actions/runs/45003156674)
+- **Artifacts**: 14 binary wheels (Linux manylinux/musllinux x86_64/aarch64/armv7l/i686/ppc64le/s390x, Windows x64/x86, macOS x86_64/arm64) + source tarball.
+- **GitHub Release**: [v0.2.0](https://github.com/AkashPriyadarshii/fast-croniter/releases/tag/v0.2.0)
+- **PyPI Release**: [fast-croniter 0.2.0](https://pypi.org/project/fast-croniter/0.2.0/)
 
 ---
 
@@ -108,4 +107,4 @@ The following 6 Conventional Commits are recorded on `master`:
 - **GitHub Repository**: `AkashPriyadarshii/fast-croniter`
 - **Description**: *"Fast, drop-in Rust replacement for Python's croniter with PyO3 abi3 wheels. Up to 207x faster (6.3M+ ops/sec), zero-allocation engine, 100% upstream test parity (267/267 tests)."*
 - **Documentation & Playground**: `https://fast-croniter-site.vercel.app`
-- **PyPI Target**: `fast-croniter` (v0.2.0 abi3 wheels)
+- **PyPI**: `https://pypi.org/project/fast-croniter/0.2.0/`
