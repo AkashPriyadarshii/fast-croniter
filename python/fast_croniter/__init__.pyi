@@ -92,21 +92,21 @@ class croniter:
     @overload
     def get_next(
         self,
-        ret_type: Type[datetime.datetime] = ...,
+        ret_type: Type[datetime.datetime],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> datetime.datetime: ...
     @overload
     def get_next(
         self,
-        ret_type: Type[float] = ...,
+        ret_type: Type[float],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> float: ...
     @overload
     def get_next(
         self,
-        ret_type: Type[_T] = ...,
+        ret_type: Type[_T],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> _T: ...
@@ -121,21 +121,21 @@ class croniter:
     @overload
     def get_prev(
         self,
-        ret_type: Type[datetime.datetime] = ...,
+        ret_type: Type[datetime.datetime],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> datetime.datetime: ...
     @overload
     def get_prev(
         self,
-        ret_type: Type[float] = ...,
+        ret_type: Type[float],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> float: ...
     @overload
     def get_prev(
         self,
-        ret_type: Type[_T] = ...,
+        ret_type: Type[_T],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
         update_current: bool = True,
     ) -> _T: ...
@@ -149,19 +149,19 @@ class croniter:
     @overload
     def next(
         self,
-        ret_type: Type[datetime.datetime] = ...,
+        ret_type: Type[datetime.datetime],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> datetime.datetime: ...
     @overload
     def next(
         self,
-        ret_type: Type[float] = ...,
+        ret_type: Type[float],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> float: ...
     @overload
     def next(
         self,
-        ret_type: Type[_T] = ...,
+        ret_type: Type[_T],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> _T: ...
 
@@ -174,30 +174,30 @@ class croniter:
     @overload
     def prev(
         self,
-        ret_type: Type[datetime.datetime] = ...,
+        ret_type: Type[datetime.datetime],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> datetime.datetime: ...
     @overload
     def prev(
         self,
-        ret_type: Type[float] = ...,
+        ret_type: Type[float],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> float: ...
     @overload
     def prev(
         self,
-        ret_type: Type[_T] = ...,
+        ret_type: Type[_T],
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
     ) -> _T: ...
 
     @overload
     def get_current(self, ret_type: None = None) -> float: ...
     @overload
-    def get_current(self, ret_type: Type[datetime.datetime] = ...) -> datetime.datetime: ...
+    def get_current(self, ret_type: Type[datetime.datetime]) -> datetime.datetime: ...
     @overload
-    def get_current(self, ret_type: Type[float] = ...) -> float: ...
+    def get_current(self, ret_type: Type[float]) -> float: ...
     @overload
-    def get_current(self, ret_type: Type[_T] = ...) -> _T: ...
+    def get_current(self, ret_type: Type[_T]) -> _T: ...
     def set_current(
         self,
         start_time: Optional[Union[float, int, datetime.datetime]] = None,
@@ -273,11 +273,24 @@ class croniter:
     ) -> Tuple[list[list[Union[int, str]]], dict[int, set[Union[int, str]]]]: ...
 
 def datetime_to_timestamp(d: datetime.datetime) -> float: ...
+def patch_croniter() -> None: ...
 
 @overload
 def croniter_range(
-    start: Union[float, int, datetime.datetime],
-    stop: Union[float, int, datetime.datetime],
+    start: datetime.datetime,
+    stop: datetime.datetime,
+    expr_format: str,
+    ret_type: None = None,
+    day_or: bool = True,
+    exclude_ends: bool = False,
+    _croniter: Optional[Type[croniter]] = None,
+    second_at_beginning: bool = False,
+    expand_from_start_time: bool = False,
+) -> Generator[datetime.datetime, None, None]: ...
+@overload
+def croniter_range(
+    start: Union[float, int],
+    stop: Union[float, int],
     expr_format: str,
     ret_type: None = None,
     day_or: bool = True,
@@ -291,7 +304,7 @@ def croniter_range(
     start: Union[float, int, datetime.datetime],
     stop: Union[float, int, datetime.datetime],
     expr_format: str,
-    ret_type: Type[datetime.datetime] = ...,
+    ret_type: Type[datetime.datetime],
     day_or: bool = True,
     exclude_ends: bool = False,
     _croniter: Optional[Type[croniter]] = None,
@@ -303,7 +316,7 @@ def croniter_range(
     start: Union[float, int, datetime.datetime],
     stop: Union[float, int, datetime.datetime],
     expr_format: str,
-    ret_type: Type[float] = ...,
+    ret_type: Type[float],
     day_or: bool = True,
     exclude_ends: bool = False,
     _croniter: Optional[Type[croniter]] = None,
@@ -315,7 +328,7 @@ def croniter_range(
     start: Union[float, int, datetime.datetime],
     stop: Union[float, int, datetime.datetime],
     expr_format: str,
-    ret_type: Type[_T] = ...,
+    ret_type: Type[_T],
     day_or: bool = True,
     exclude_ends: bool = False,
     _croniter: Optional[Type[croniter]] = None,

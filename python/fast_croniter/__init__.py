@@ -4,8 +4,8 @@ import math
 import sys
 from dateutil.tz import datetime_exists, tzutc
 
-from . import fast_croniter as _native_m
-from .fast_croniter import (
+from . import fast_croniter as _native_m  # pyright: ignore[reportAttributeAccessIssue]
+from .fast_croniter import (  # pyright: ignore[reportAttributeAccessIssue]
     CroniterBadCronError,
     CroniterBadDateError,
     CroniterBadTypeRangeError,
@@ -200,7 +200,7 @@ class croniter(_NativeCroniter):
         else:
             result = datetime.datetime.fromtimestamp(timestamp, tz=tzutc()).replace(tzinfo=None)
         if tzinfo:
-            result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)
+            result = result.replace(tzinfo=UTC_DT).astimezone(tzinfo)  # pyright: ignore[reportArgumentType]
         return result
 
     _timestamp_to_datetime = timestamp_to_datetime
@@ -273,9 +273,18 @@ def croniter_range(
         return
 
 
+def patch_croniter() -> None:
+    """Patch sys.modules so all downstream imports of 'croniter' resolve to 'fast_croniter'."""
+    import sys
+    import fast_croniter
+    sys.modules["croniter"] = fast_croniter
+    sys.modules["croniter.croniter"] = fast_croniter
+
+
 __all__ = [
     "DAY_FIELD",
     "DOW_ALPHAS",
+    "DOW_FIELD",
     "EPOCH",
     "HOUR_FIELD",
     "MINUTE_FIELD",
@@ -300,6 +309,7 @@ __all__ = [
     "croniter",
     "croniter_range",
     "datetime_to_timestamp",
+    "patch_croniter",
 ]
 
 import sys

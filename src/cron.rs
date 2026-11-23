@@ -448,6 +448,9 @@ pub fn expand_expression(
                     return Err(CroniterBadCronError::new_err(format!("{expr_format} is out of bands")));
                 }
 
+                let field_span = max_range - min_range + 1;
+                let step = step.min(field_span);
+
                 let start_at_field_max = start_with_step && (low == high);
                 let (mut final_low, final_high) = if low == high && !start_with_step {
                     (min_range, max_range)
@@ -475,7 +478,10 @@ pub fn expand_expression(
                     let mut curr = final_low;
                     while curr <= max_range {
                         range_vals.push(curr);
-                        curr += step;
+                        curr = match curr.checked_add(step) {
+                            Some(next) => next,
+                            None => break,
+                        };
                     }
                     let to_skip = if let Some(&last_val) = range_vals.last() {
                         let already_skipped = max_range.saturating_sub(last_val);
@@ -492,13 +498,19 @@ pub fn expand_expression(
                     let mut curr2 = min_range + to_skip;
                     while curr2 <= final_high {
                         range_vals.push(curr2);
-                        curr2 += step;
+                        curr2 = match curr2.checked_add(step) {
+                            Some(next) => next,
+                            None => break,
+                        };
                     }
                 } else {
                     let mut curr = final_low;
                     while curr <= final_high {
                         range_vals.push(curr);
-                        curr += step;
+                        curr = match curr.checked_add(step) {
+                            Some(next) => next,
+                            None => break,
+                        };
                     }
                 }
 
@@ -718,8 +730,10 @@ fn expand_hash_or_random(
 
     let crc = if is_rand {
         rand_u32()
+    } else if let Some(hid) = hash_id {
+        crc32(hid)
     } else {
-        crc32(hash_id.unwrap())
+        return Err(CroniterBadCronError::new_err(format!("Hash expression requires hash_id: {expr}")));
     };
 
     let do_hash = |rb: u32, re: u32| -> u32 {
@@ -999,21 +1013,23 @@ pub fn calc_candidate_override(
     wildcard_field: Option<usize>,
 ) -> Result<NaiveDateTime, PyErr> {
     let mut dt = if is_prev {
-        now - chrono::Duration::microseconds(1)
+        now.checked_sub_signed(chrono::Duration::microseconds(1))
+            .ok_or_else(|| CroniterBadDateError::new_err("Date underflow while initializing candidate"))?
     } else if expanded.len() > 5 {
-        (now + chrono::Duration::seconds(1)).with_nanosecond(0).unwrap()
+        now.checked_add_signed(chrono::Duration::seconds(1))
+            .and_then(|d| d.with_nanosecond(0))
+            .ok_or_else(|| CroniterBadDateError::new_err("Date overflow while initializing candidate"))?
     } else {
-        (now + chrono::Duration::minutes(1))
-            .with_second(0)
-            .unwrap()
-            .with_nanosecond(0)
-            .unwrap()
+        now.checked_add_signed(chrono::Duration::minutes(1))
+            .and_then(|d| d.with_second(0))
+            .and_then(|d| d.with_nanosecond(0))
+            .ok_or_else(|| CroniterBadDateError::new_err("Date overflow while initializing candidate"))?
     };
 
     if expanded.len() > 5 {
-        dt = dt.with_nanosecond(0).unwrap();
+        dt = dt.with_nanosecond(0).unwrap_or(dt);
     } else {
-        dt = dt.with_second(0).unwrap().with_nanosecond(0).unwrap();
+        dt = dt.with_second(0).and_then(|d| d.with_nanosecond(0)).unwrap_or(dt);
     }
 
     let current_year = dt.year();
@@ -1032,11 +1048,11 @@ pub fn calc_candidate_override(
                     dt = if is_prev {
                         NaiveDate::from_ymd_opt(new_year, 12, 31)
                             .and_then(|d| d.and_hms_opt(23, 59, 59))
-                            .unwrap_or(dt)
+                            .ok_or_else(|| CroniterBadDateError::new_err("Invalid date representation in year step"))?
                     } else {
                         NaiveDate::from_ymd_opt(new_year, 1, 1)
                             .and_then(|d| d.and_hms_opt(0, 0, 0))
-                            .unwrap_or(dt)
+                            .ok_or_else(|| CroniterBadDateError::new_err("Invalid date representation in year step"))?
                     };
                     continue;
                 }
@@ -1633,8 +1649,12 @@ impl Croniter {
     }
 
     #[setter]
-    pub fn set_cur(&mut self, val: f64) {
+    pub fn set_cur(&mut self, val: f64) -> PyResult<()> {
+        if !val.is_finite() {
+            return Err(CroniterBadDateError::new_err("Invalid non-finite timestamp"));
+        }
         self.cur = val;
+        Ok(())
     }
 
     #[getter]
@@ -1643,8 +1663,12 @@ impl Croniter {
     }
 
     #[setter]
-    pub fn set_start_time(&mut self, val: f64) {
+    pub fn set_start_time(&mut self, val: f64) -> PyResult<()> {
+        if !val.is_finite() {
+            return Err(CroniterBadDateError::new_err("Invalid non-finite timestamp"));
+        }
         self.start_time = val;
+        Ok(())
     }
 
     #[getter]
@@ -1653,8 +1677,12 @@ impl Croniter {
     }
 
     #[setter]
-    pub fn set_dst_start_time(&mut self, val: f64) {
+    pub fn set_dst_start_time(&mut self, val: f64) -> PyResult<()> {
+        if !val.is_finite() {
+            return Err(CroniterBadDateError::new_err("Invalid non-finite timestamp"));
+        }
         self.dst_start_time = val;
+        Ok(())
     }
 
     #[getter]
@@ -2285,9 +2313,13 @@ impl Croniter {
         if !cur_ts.is_finite() {
             return Err(CroniterBadDateError::new_err("Timestamp must be finite"));
         }
-        let sec = cur_ts.floor() as i64;
+        let base_sec = cur_ts.floor() as i64;
         let usec = ((cur_ts - cur_ts.floor()) * 1e6).round() as u32;
-        let nsec = usec * 1000;
+        let (sec, nsec) = if usec >= 1_000_000 {
+            (base_sec.saturating_add(1), 0)
+        } else {
+            (base_sec, usec * 1000)
+        };
         let naive_now = chrono::DateTime::from_timestamp(sec, nsec)
             .map(|dt| dt.naive_utc())
             .ok_or_else(|| CroniterBadDateError::new_err("Timestamp out of representable date range"))?;

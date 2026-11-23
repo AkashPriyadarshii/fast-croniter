@@ -86,14 +86,14 @@ from fast_croniter import croniter, croniter_range
 import datetime
 
 base = datetime.datetime(2024, 1, 1, 0, 0)
-iter = croniter("*/5 * * * *", base)
+itr = croniter("*/5 * * * *", base)
 
 # Get next recurrence as datetime
-next_dt = iter.get_next(datetime.datetime)
+next_dt = itr.get_next(datetime.datetime)
 print(next_dt)  # 2024-01-01 00:05:00
 
 # Get next recurrence as Unix timestamp float
-next_ts = iter.get_next(float)
+next_ts = itr.get_next(float)
 print(next_ts)  # 1704067500.0
 
 # Match test
@@ -103,6 +103,16 @@ print(is_match)  # True
 # Range generator
 for dt in croniter_range(datetime.datetime(2024, 1, 1), datetime.datetime(2024, 1, 2), "0 * * * *"):
     print(dt)
+```
+
+### Instant Celery & Airflow Integration
+
+If you use Celery Beat, Apache Airflow, or RQ where third-party packages hardcode `import croniter`:
+
+```python
+# In your application entrypoint or settings.py:
+import fast_croniter
+fast_croniter.patch_croniter()  # All 'import croniter' calls will now use fast-croniter
 ```
 
 ---
