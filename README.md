@@ -36,7 +36,7 @@ fast-croniter ports the complete recurrence engine to compiled Rust with native 
 
 - **Drop-in Migration**: Replace `import croniter` with `import fast_croniter as croniter`. All classes, method signatures, return types, constants, and exceptions are identical.
 - **100% Upstream Parity**: Validated against all 267 test cases in the `kiorky/croniter` test suite, including DST transitions, `H`/`R` hashed jitter, and ISC/Vixie compatibility mode.
-- **Throughput**: Computes over **6,310,000 recurrence iterations per second** on a single thread with zero heap allocation per step.
+- **Throughput**: Computes over **7,120,000 recurrence iterations per second** on a single thread with zero heap allocation per step.
 - **Minimal Runtime Dependencies**: Requires only `python-dateutil` for full timezone and DST parity with upstream `croniter`.
 - **AI Agent & LLM Ready**: Ships with [llms.txt](llms.txt) for context ingestion by AI coding assistants.
 
@@ -48,14 +48,14 @@ Measured over 10,000 iterations per scenario comparing `croniter` (pure Python u
 
 | Benchmark Scenario | Python `croniter` | Rust `fast-croniter` | Throughput Speedup |
 |:---|---:|---:|---:|
-| Hourly with Days (`0 0-23/2 * * mon-fri`, float) | 20,718 ops/sec | **4,297,194 ops/sec** | **207.4x faster** |
-| Simple Step (`*/5 * * * *`, float) | 34,220 ops/sec | **6,313,929 ops/sec** | **184.5x faster** |
-| Complex Multi-field (`15 2,4,6 1-15 1,6,12 1-5`, datetime) | 8,321 ops/sec | **1,262,738 ops/sec** | **151.8x faster** |
-| Second Precision (`*/10 */2 * * * */15`, float) | 32,297 ops/sec | **4,649,649 ops/sec** | **144.0x faster** |
-| Day OR Union (`0 0 10 * wed`, datetime) | 11,278 ops/sec | **1,087,181 ops/sec** | **96.4x faster** |
-| Simple Step (`*/5 * * * *`, datetime) | 31,544 ops/sec | **2,167,834 ops/sec** | **68.7x faster** |
-| Expression Validation (`is_valid`, 10k calls) | 7,107 ops/sec | **163,387 ops/sec** | **23.0x faster** |
-| Range Generation (`croniter_range`, 10k items) | 32,453 items/sec | **629,508 items/sec** | **19.4x faster** |
+| Hourly with Days (`0 0-23/2 * * mon-fri`, float) | 25,502 ops/sec | **4,941,932 ops/sec** | **193.8x faster** |
+| Simple Step (`*/5 * * * *`, float) | 40,422 ops/sec | **7,128,092 ops/sec** | **176.3x faster** |
+| Complex Multi-field (`15 2,4,6 1-15 1,6,12 1-5`, datetime) | 9,487 ops/sec | **1,464,043 ops/sec** | **154.3x faster** |
+| Day OR Union (`0 0 10 * wed`, datetime) | 14,101 ops/sec | **2,079,737 ops/sec** | **147.5x faster** |
+| Second Precision (`*/10 */2 * * * */15`, float) | 35,615 ops/sec | **4,499,640 ops/sec** | **126.3x faster** |
+| Simple Step (`*/5 * * * *`, datetime) | 32,879 ops/sec | **2,780,095 ops/sec** | **84.6x faster** |
+| Expression Validation (`is_valid`, 10k calls) | 8,002 ops/sec | **175,961 ops/sec** | **22.0x faster** |
+| Range Generation (`croniter_range`, 10k items) | 36,388 items/sec | **664,702 items/sec** | **18.3x faster** |
 
 * **Parity Guarantee**: Verified across 50,000 continuous iterations against upstream `kiorky/croniter`: **0 timestamp mismatches** (100% exact parity).
 
@@ -114,6 +114,21 @@ If you use Celery Beat, Apache Airflow, or RQ where third-party packages hardcod
 import fast_croniter
 fast_croniter.patch_croniter()  # All 'import croniter' calls will now use fast-croniter
 ```
+
+---
+
+## Frequently Asked Questions (FAQ)
+
+### How is fast-croniter up to 193x faster than pure-Python croniter?
+Pure-Python `croniter` uses Python loops, repeated object allocations, dynamic reflection (`issubclass`), and timezone conversions in Python bytecode for every single step. `fast-croniter` executes recurrence calculations in compiled Rust with zero internal heap allocations per step, direct C-API datetime instantiation via PyO3, and fat Link-Time Optimization (`lto = "fat"`).
+
+### Is fast-croniter a 100% true drop-in replacement?
+Yes. fast-croniter is tested against the full 267-test suite from `kiorky/croniter`. It preserves identical class structures, methods (`get_next`, `get_prev`, `get_current`, `match`, `is_valid`, `expand`), function signatures (`croniter_range`), exception hierarchies (`CroniterBadCronError`, etc.), constants (`DOW_ALPHAS`, `M_ALPHAS`, `EPOCH`, `OVERFLOW32B_MODE`), and daylight saving transition semantics.
+
+### Which Python versions and operating systems are supported?
+`fast-croniter` distributes pre-compiled `abi3` binary wheels on PyPI for:
+- **Operating Systems**: Linux (x86_64, aarch64, musl), macOS (Apple Silicon M-series & Intel x86_64), Windows (x86_64, x86).
+- **Python Runtimes**: Python 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13. No Rust compiler is required when installing via `pip install fast-croniter`.
 
 ---
 
