@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - Unreleased
+
+### Added
+- `patch_croniter()` helper function in `fast_croniter` for zero-configuration drop-in monkeypatching into existing Python runtimes (e.g. Celery Beat, Apache Airflow, Taskiq).
+- Module export parity for `DOW_FIELD` and `patch_croniter` in `__all__`.
+
+### Fixed
+- Hardened boundary arithmetic on `NaiveDateTime::MAX` to prevent duration overflow panics (SEC-02).
+- Hardened multi-step integer increments with span-bounded validation against negative or overflow intervals in `src/cron.rs` (SEC-03).
+- Resolved Pyright overload typing collisions on `get_next`, `get_prev`, `get_current`, and `croniter_range` in `python/fast_croniter/__init__.pyi`.
+- Cleaned unused variable and mutability compiler warnings in release builds.
+
 ## [0.2.0] - 2026-11-22
 
 ### Added

@@ -16,3 +16,13 @@ upstream-croniter/
 assets/*portrait.png
 *report.png
 *editorial.png
+
+# Internal agent working notes & documentation
+HANDOFF.md
+CONSTRAINTS.md
+*AUDIT*.md
+*REVIEW*.md
+NOTES.md
+TODO.md
+SCRATCH.md
+*.draft.md
