@@ -108,3 +108,13 @@ The `v0.2.0` release workflow passed 100% green across all matrix targets:
 - **Description**: *"Fast, drop-in Rust replacement for Python's croniter with PyO3 abi3 wheels. Up to 207x faster (6.3M+ ops/sec), zero-allocation engine, 100% upstream test parity (267/267 tests)."*
 - **Documentation & Playground**: `https://fast-croniter-site.vercel.app`
 - **PyPI**: `https://pypi.org/project/fast-croniter/0.2.0/`
+
+---
+
+## 7. Autonomous Multi-Agent Audit & v0.2.1 Hardening (2026-11-23)
+
+Four specialized autonomous subagents from `agency-agents` audited the v0.2.0 release:
+1. **Performance Benchmarker**: Verified up to 5.16M ops/sec (202.1x speedup over pure-Python), verified 0 internal heap bytes allocated during recurrence steps via `tracemalloc`.
+2. **Parity Reality Checker**: Certified 100% bug-for-bug upstream parity (267/267 tests, 890 subtests passed in 0.94s, zero DST/fold drift).
+3. **AppSec Security Auditor**: Identified SEC-02 (`NaiveDateTime::MAX` duration overflow) and SEC-03 (large step integer overflow). Both patched with checked duration arithmetic and span-bounded step increments in `src/cron.rs`.
+4. **Developer Experience (DX) Engineer**: Flagged Pyright overload collisions in `python/fast_croniter/__init__.pyi`, missing `DOW_FIELD` export in `__all__`, and recommended an automated monkey-patcher. All patched; `pyright` now reports 0 errors across all stubs, and `patch_croniter()` is exported for 1-line Celery Beat / Apache Airflow integration.
